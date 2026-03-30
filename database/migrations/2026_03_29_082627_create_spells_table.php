@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
-            $table->int('level')->unsigned();
+            $table->integer('level')->unsigned();
             $table->string('damage');
             $table->timestamps();
         });

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
             $table->bigInteger('feature_id')->nullable()->unsigned();
-            $table->foreignId('feature_id')->references('id')->on('features')->onDelete('set null');
+            $table->foreign('feature_id')->references('id')->on('features')->onDelete('set null');
             $table->timestamps();
         });
     }

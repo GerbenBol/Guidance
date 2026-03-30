@@ -14,8 +14,13 @@ return new class extends Migration
         Schema::create('characters', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->bigInteger('race_id')->nullable();
-            $table->foreignId('race_id')->references('id')->on('races')->onDelete('set null');
+            $table->bigInteger('race_id')->nullable()->unsigned();
+            $table->bigInteger('background_id')->nullable()->unsigned();
+            $table->json('race_options')->nullable();
+            $table->json('background_options')->nullable();
+
+            $table->foreign('race_id')->references('id')->on('races')->onDelete('set null');
+            $table->foreign('background_id')->references('id')->on('backgrounds')->onDelete('set null');
             $table->timestamps();
         });
     }
