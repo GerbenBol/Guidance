@@ -33,13 +33,13 @@ class Character extends Model
         return $this->hasOne(Background::class, 'background_id');
     }
 
-    public function class(): HasManyThrough
+    public function classes(): HasManyThrough
     {
         return $this->hasManyThrough(
             PlayerClass::class,
             CharacterHasClass::class,
             'id',
-            'class_id'
+            'id'
         );
     } // check if this works the way i think it works before also implementing it for subclasses
 }

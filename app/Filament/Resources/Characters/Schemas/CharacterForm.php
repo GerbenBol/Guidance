@@ -21,18 +21,22 @@ class CharacterForm
                 Wizard::make([
                     Step::make('Class')
                         ->schema([
-                            //
+                            Select::make('class_id')
+                                ->relationship('classes', 'name')
+                                ->native()
                         ]),
                     Step::make('Race')
                         ->schema([
                             Select::make('race_id')
-                                ->relationship('race', 'name')
+                                ->options([])
+                                // ->relationship('race', 'name')
                                 ->native(false),
                         ]),
                     Step::make('Background')
                         ->schema([
                             Select::make('background_id')
-                                ->relationship('background', 'name')
+                                ->options([])
+                                // ->relationship('background', 'name')
                                 ->native(false),
                         ]),
                     Step::make('Abilities')
