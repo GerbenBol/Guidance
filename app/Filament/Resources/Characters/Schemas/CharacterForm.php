@@ -23,7 +23,7 @@ class CharacterForm
                         ->schema([
                             Select::make('class_id')
                                 ->relationship('classes', 'name')
-                                ->native()
+                                ->native(),
                         ]),
                     Step::make('Race')
                         ->schema([
@@ -42,8 +42,8 @@ class CharacterForm
                     Step::make('Abilities')
                         ->schema([]),
                 ])
-                ->columnSpanFull()
-                ->skippable()
+                    ->columnSpanFull()
+                    ->skippable(),
             ]);
     }
 }

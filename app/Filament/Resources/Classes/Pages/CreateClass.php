@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Resources\Characters\Pages;
+namespace App\Filament\Resources\Classes\Pages;
 
-use App\Filament\Resources\Characters\CharacterResource;
+use App\Filament\Resources\Classes\ClassResource;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateCharacter extends CreateRecord
+class CreateClass extends CreateRecord
 {
-    protected static string $resource = CharacterResource::class;
+    protected static string $resource = ClassResource::class;
 
     protected function getFormActions(): array
     {
