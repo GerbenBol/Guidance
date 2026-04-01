@@ -19,10 +19,10 @@ class CharacterForm
                     ->columnSpanFull()
                     ->required(),
                 Wizard::make([
-                    Step::make('Class')
+                    Step::make('Classes')
                         ->schema([
                             Select::make('class_id')
-                                ->relationship('classes', 'name')
+                                // ->relationship('classes', 'name')
                                 ->native(),
                         ]),
                     Step::make('Race')
