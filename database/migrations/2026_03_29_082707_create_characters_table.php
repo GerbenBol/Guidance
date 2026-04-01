@@ -19,8 +19,8 @@ return new class extends Migration
             $table->json('race_options')->nullable();
             $table->json('background_options')->nullable();
 
-            $table->foreign('race_id')->references('id')->on('races')->onDelete('set null');
-            $table->foreign('background_id')->references('id')->on('backgrounds')->onDelete('set null');
+            // $table->foreign('race_id')->references('id')->on('races')->onDelete('set null');
+            // $table->foreign('background_id')->references('id')->on('backgrounds')->onDelete('set null');
             $table->timestamps();
         });
     }

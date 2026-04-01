@@ -17,6 +17,7 @@ return new class extends Migration
             $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
             $table->json('features')->nullable();
+            $table->json('spell_info')->nullable();
             $table->timestamps();
         });
     }

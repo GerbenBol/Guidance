@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Spell extends Model
 {
@@ -14,5 +15,15 @@ class Spell extends Model
         'description',
         'level',
         'damage',
+        'school_id',
     ];
+
+    protected $casts = [
+        'damage' => 'object',
+    ];
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'school_id');
+    }
 }

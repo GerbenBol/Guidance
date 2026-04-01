@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('feats', function (Blueprint $table) {
+        Schema::create('damage_types', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->longText('short_desc')->nullable();
-            $table->longText('description')->nullable();
-            $table->bigInteger('feature_id')->nullable()->unsigned();
-            $table->foreign('feature_id')->references('id')->on('features')->onDelete('set null');
+            $table->string('icon');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('feats');
+        Schema::dropIfExists('damage_types');
     }
 };

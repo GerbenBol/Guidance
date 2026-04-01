@@ -23,23 +23,23 @@ class Character extends Model
         'background_options' => 'object',
     ];
 
-    public function race(): HasOne
-    {
-        return $this->hasOne(Race::class, 'race_id');
-    }
+    // public function race(): HasOne
+    // {
+    //     return $this->hasOne(Race::class, 'race_id');
+    // }
 
-    public function background(): HasOne
-    {
-        return $this->hasOne(Background::class, 'background_id');
-    }
+    // public function background(): HasOne
+    // {
+    //     return $this->hasOne(Background::class, 'background_id');
+    // }
 
-    public function classes(): HasManyThrough
-    {
-        return $this->hasManyThrough(
-            PlayerClass::class,
-            CharacterHasClass::class,
-            'id',
-            'id'
-        );
-    } // check if this works the way i think it works before also implementing it for subclasses
+    // public function classes(): HasManyThrough
+    // {
+    //     return $this->hasManyThrough(
+    //         PlayerClass::class,
+    //         CharacterHasClass::class,
+    //         'id',
+    //         'id'
+    //     );
+    // }
 }

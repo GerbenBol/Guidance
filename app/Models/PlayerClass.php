@@ -13,9 +13,11 @@ class PlayerClass extends Model
         'short_desc',
         'description',
         'features',
+        'spell_info',
     ];
 
     protected $casts = [
         'features' => 'object',
+        'spell_info' => 'object',
     ];
 }

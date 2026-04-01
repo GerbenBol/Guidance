@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subclasses', function (Blueprint $table) {
+        Schema::create('spells', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
             $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
-            $table->json('features')->nullable();
-            $table->bigInteger('class_id')->unsigned()->unsigned();
-            $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
+            $table->integer('level')->unsigned();
+            $table->json('damage')->nullable();
+            $table->bigInteger('school_id')->unsigned()->nullable();
+            $table->foreign('school_id')->references('id')->on('schools')->onDelete('set null');
             $table->timestamps();
         });
     }
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subclasses');
+        Schema::dropIfExists('spells');
     }
 };

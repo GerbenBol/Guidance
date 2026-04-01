@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasLabel;
 use Illuminate\Contracts\Support\Htmlable;
 
-enum Abilities: string implements HasLabel
+enum Ability: string implements HasLabel
 {
     case Strength = 'Strength';
     case Dexterity = 'Dexterity';

@@ -18,4 +18,15 @@ class EditClass extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        if (isset($data['spell_info'])) {
+            foreach (json_decode($data['spell_info']) as $key => $value) {
+                $data[$key] = $value;
+            }
+        }
+
+        return $data;
+    }
 }
