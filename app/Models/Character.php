@@ -19,8 +19,8 @@ class Character extends Model
     ];
 
     protected $casts = [
-        'race_options' => 'object',
-        'background_options' => 'object',
+        'race_options' => 'array',
+        'background_options' => 'array',
     ];
 
     // public function race(): HasOne

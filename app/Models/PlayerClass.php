@@ -17,7 +17,7 @@ class PlayerClass extends Model
     ];
 
     protected $casts = [
-        'features' => 'object',
+        'features' => 'array',
         'spell_info' => 'object',
     ];
 }

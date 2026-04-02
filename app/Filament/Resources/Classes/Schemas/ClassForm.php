@@ -4,9 +4,6 @@ namespace App\Filament\Resources\Classes\Schemas;
 
 use App\Enums\Ability;
 use App\Models\PlayerClass;
-use App\Models\School;
-use App\Models\Spell;
-use App\Services\FeatureService;
 use App\Services\FormService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
@@ -17,7 +14,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Fieldset;
-use Filament\Schemas\Components\FusedGroup;
+use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
@@ -40,6 +37,7 @@ class ClassForm
                 $general = [
                     TextInput::make('name')
                         ->afterLabel(FormService::makeHintIcon('The name of the class'))
+                        ->unique()
                         ->required(),
                     TextInput::make('source')
                         ->afterLabel(FormService::makeHintIcon('Original source of this item, such as "Tasha\'s Cauldron of Everything" or Homebrew')),
@@ -61,7 +59,7 @@ class ClassForm
                                 ->schema([
                                     Repeater::make('features')
                                         ->hiddenLabel()
-                                        ->schema(FeatureService::singleFormItem())
+                                        ->schema([])
                                         ->reorderable(false),
                                 ]),
                             Step::make('Spellcasting')
@@ -79,59 +77,7 @@ class ClassForm
                                                 ->inline()
                                                 ->boolean('Own Spell List', 'Borrows Spell List'),
                                             Section::make('Own Spell List')
-                                                ->schema([
-                                                    Hidden::make('spell_filters'),
-                                                    Select::make('spells')
-                                                        ->label('Add Spells')
-                                                        ->multiple()
-                                                        ->options(function (Get $get): array|Collection {
-                                                            $filters = json_decode($get('spell_filters'));
-                                                            $collection = Spell::all();
-
-                                                            if ($filters) {
-                                                                $query = Spell::query();
-
-                                                                foreach ($filters as $filter => $allowed) {
-                                                                    switch ($filter) {
-                                                                        case 'school':
-                                                                            $query = $query->whereIn('school_id', $allowed);
-                                                                            break;
-                                                                        case 'level':
-                                                                            $query = $query->whereIn('level', $allowed);
-                                                                            break;
-                                                                        default: break;
-                                                                    }
-                                                                }
-                                                                $collection = $query->get();
-                                                            }
-
-                                                            return $collection->pluck('name', 'id');
-                                                        })
-                                                        ->searchable()
-                                                        ->native(false)
-                                                        ->suffixAction(
-                                                            Action::make('filter')
-                                                                ->tooltip('Add Filters')
-                                                                ->icon(Heroicon::Funnel)
-                                                                ->fillForm(fn (Get $get): array => json_decode($get('spell_filters'), true) ?? [])
-                                                                ->schema([
-                                                                    Select::make('school')
-                                                                        ->label('Schools of Magic')
-                                                                        ->options(School::all()->pluck('name', 'id'))
-                                                                        ->multiple(),
-                                                                    Select::make('level')
-                                                                        ->label('Spell Level')
-                                                                        ->options([
-                                                                            'Cantrip', 1, 2, 3,
-                                                                            4, 5, 6, 7, 8, 9,
-                                                                        ])
-                                                                        ->multiple(),
-                                                                ])
-                                                                ->modalSubmitActionLabel('Apply Filters')
-                                                                ->action(fn (Set $set, array $data) => $set('spell_filters', json_encode($data))),
-                                                            true
-                                                        ),
-                                                ])
+                                                ->schema(FormService::makeSpellSelectFull())
                                                 ->visible(fn (Get $get): bool => $get('has_own_spelllist') ?? false),
                                             Section::make('Borrows Spell List')
                                                 ->schema([
@@ -147,8 +93,10 @@ class ClassForm
                                                                 ->visible(fn (Get $get): bool => $get('borrows_from') != null),
                                                             true
                                                         ),
+                                                    Hidden::make('spell_filters'),
+                                                    FormService::makeSpellSelect('extra_spells', 'Additional Spells'),
                                                 ])
-                                                ->visible(fn (Get $get) => $get('has_own_spelllist') != null && ! $get('has_own_spelllist')),
+                                                ->visible(fn (Get $get) => ! $get('has_own_spelllist')),
                                         ])
                                         ->secondary(),
                                     Section::make('Spell Slot Table')
@@ -165,29 +113,41 @@ class ClassForm
                                                 $slots = [];
 
                                                 for ($slot = 1; $slot <= 9; $slot++) {
-                                                    $slots[] = FusedGroup::make([
-                                                        Action::make('lvl'.$lvl.'slot'.$slot.'increase')
-                                                            ->hiddenLabel()
-                                                            ->icon(Heroicon::ChevronUp)
-                                                            ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) + 1)),
-                                                        TextInput::make('lvl'.$lvl.'slot'.$slot)
-                                                            ->disabled(),
-                                                        Action::make('lvl'.$lvl.'slot'.$slot.'decrease')
-                                                            ->hiddenLabel()
-                                                            ->icon(Heroicon::ChevronDown)
-                                                            ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) - 1)),
-                                                    ])
-                                                        ->aboveContent(Schema::center(Text::make($slot)));
+                                                    $slots[] = TextInput::make('lvl'.$lvl.'slot'.$slot)
+                                                        ->hiddenLabel()
+                                                        ->disabled()
+                                                        ->aboveContent(Schema::center([
+                                                            Text::make($lvl),
+                                                            Action::make('lvl'.$lvl.'slot'.$slot.'increase')
+                                                                ->hiddenLabel()
+                                                                ->icon(Heroicon::ChevronUp)
+                                                                ->button()
+                                                                ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) + 1)),
+                                                        ]))
+                                                        ->belowContent(
+                                                            Schema::center(
+                                                                Action::make('lvl'.$lvl.'slot'.$slot.'decrease')
+                                                                    ->hiddenLabel()
+                                                                    ->icon(Heroicon::ChevronDown)
+                                                                    ->button()
+                                                                    ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) - 1)),
+                                                            )
+                                                        );
                                                 }
                                                 $rows[] = Fieldset::make('Character Level '.$lvl)
-                                                    ->schema($slots)
-                                                    ->columns(9);
+                                                    ->schema([Flex::make($slots)->from('md')])
+                                                    // ->columns([
+                                                    //     'default' => 3,
+                                                    //     'md' => 5,
+                                                    //     'lg' => 9
+                                                    // ]);
+                                                    ->columns(1);
                                             }
 
                                             return $rows;
                                         })
-                                        // ->columns(2)
-                                        // ->collapsed()
+                                        // ->collapsible()
+                                        ->collapsed()
                                         ->secondary(),
                                 ])
                                 ->columns(2),

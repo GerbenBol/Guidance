@@ -19,7 +19,7 @@ class Spell extends Model
     ];
 
     protected $casts = [
-        'damage' => 'object',
+        'damage' => 'array',
     ];
 
     public function school(): BelongsTo
