@@ -16,13 +16,19 @@ class CharactersTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('race_id')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('background_id')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('player.name')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -99,7 +99,7 @@ class ClassForm
                                                 ->visible(fn (Get $get) => ! $get('has_own_spelllist')),
                                         ])
                                         ->secondary(),
-                                    Section::make('Spell Slot Table') 
+                                    Section::make('Spell Slot Table')
                                         ->schema(function (): array {
                                             $rows = [
                                                 TextInput::make('cantrips')

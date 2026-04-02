@@ -16,6 +16,7 @@ class Spell extends Model
         'level',
         'damage',
         'school_id',
+        'user_id',
     ];
 
     protected $casts = [
@@ -25,5 +26,10 @@ class Spell extends Model
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class, 'school_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

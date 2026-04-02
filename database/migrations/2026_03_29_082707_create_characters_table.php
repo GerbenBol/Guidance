@@ -18,7 +18,9 @@ return new class extends Migration
             $table->bigInteger('background_id')->nullable()->unsigned();
             $table->json('race_options')->nullable();
             $table->json('background_options')->nullable();
+            $table->bigInteger('player_id')->unsigned();
 
+            $table->foreign('player_id')->references('id')->on('users')->onDelete('cascade');
             // $table->foreign('race_id')->references('id')->on('races')->onDelete('set null');
             // $table->foreign('background_id')->references('id')->on('backgrounds')->onDelete('set null');
             $table->timestamps();

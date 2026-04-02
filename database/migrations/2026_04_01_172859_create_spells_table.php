@@ -19,6 +19,8 @@ return new class extends Migration
             $table->integer('level')->unsigned();
             $table->json('damage')->nullable();
             $table->bigInteger('school_id')->unsigned()->nullable();
+            $table->bigInteger('user_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('school_id')->references('id')->on('schools')->onDelete('set null');
             $table->timestamps();
         });
