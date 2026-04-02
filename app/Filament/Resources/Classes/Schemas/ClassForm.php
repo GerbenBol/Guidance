@@ -43,9 +43,11 @@ class ClassForm
                         ->afterLabel(FormService::makeHintIcon('Original source of this item, such as "Tasha\'s Cauldron of Everything" or Homebrew')),
                     Textarea::make('short_desc')
                         ->label('Short Description')
-                        ->afterLabel(FormService::makeHintIcon('A short description, which is shown in the character builder and in the class overview')),
+                        ->afterLabel(FormService::makeHintIcon('A short description, which is shown in the character builder and in the class overview'))
+                        ->columnSpanFull(),
                     Textarea::make('description')
-                        ->afterLabel(FormService::makeHintIcon('The full description')),
+                        ->afterLabel(FormService::makeHintIcon('The full description'))
+                        ->columnSpanFull(),
                 ];
 
                 if ($operation == 'create') {
@@ -54,7 +56,8 @@ class ClassForm
                     return [
                         Wizard::make([
                             Step::make('General')
-                                ->schema($general),
+                                ->schema($general)
+                                ->columns(2),
                             Step::make('Features')
                                 ->schema([
                                     Repeater::make('features')
@@ -136,11 +139,6 @@ class ClassForm
                                                 }
                                                 $rows[] = Fieldset::make('Character Level '.$lvl)
                                                     ->schema([Flex::make($slots)->from('md')])
-                                                    // ->columns([
-                                                    //     'default' => 3,
-                                                    //     'md' => 5,
-                                                    //     'lg' => 9
-                                                    // ]);
                                                     ->columns(1);
                                             }
 
@@ -157,6 +155,7 @@ class ClassForm
                             ->columnSpanFull(),
                     ];
                 }
-            });
+            })
+            ->columns(2);
     }
 }
