@@ -7,11 +7,11 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum ItemType: string implements HasLabel
 {
-    case Weapon = 'weapon';
-    case Armor = 'armor';
-    case Potion = 'potion';
-    case ArcaneFocus = 'arcane focus';
-    case Other = 'other';
+    case weapon = 'Weapon';
+    case armor = 'Armor';
+    case potion = 'Potion';
+    case arcaneFocus = 'Arcane Focus';
+    case other = 'Other';
 
     public function getLabel(): string|Htmlable|null
     {
@@ -22,8 +22,8 @@ enum ItemType: string implements HasLabel
     {
         $arr = [];
 
-        foreach (self::cases() as $key => $value) {
-            $arr[$key] = $value;
+        foreach (self::cases() as $case) {
+            $arr[$case->name] = $case->value;
         }
 
         return $arr;

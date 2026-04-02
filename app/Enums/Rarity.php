@@ -7,12 +7,12 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum Rarity: string implements HasLabel
 {
-    case Common = 'common';
-    case Uncommon = 'uncommon';
-    case Rare = 'rare';
-    case VeryRare = 'very rare';
-    case Legendary = 'legendary';
-    case Artifact = 'artifact';
+    case common = 'Common';
+    case uncommon = 'Uncommon';
+    case rare = 'Rare';
+    case veryRare = 'Very Rare';
+    case legendary = 'Legendary';
+    case artifact = 'Artifact';
 
     public function getLabel(): string|Htmlable|null
     {
@@ -23,8 +23,8 @@ enum Rarity: string implements HasLabel
     {
         $arr = [];
 
-        foreach (self::cases() as $key => $value) {
-            $arr[$key] = $value;
+        foreach (self::cases() as $case) {
+            $arr[$case->name] = $case->value;
         }
 
         return $arr;

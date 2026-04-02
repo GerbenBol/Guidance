@@ -7,12 +7,12 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum Time: string implements HasLabel
 {
-    case Minute = 'minute';
-    case Hour = 'hour';
-    case Day = 'day';
-    case Week = 'week';
-    case Month = 'month';
-    case Year = 'year';
+    case minute = 'Minute(s)';
+    case hour = 'Hour(s)';
+    case day = 'Day(s)';
+    case week = 'Week(s)';
+    case month = 'Month(s)';
+    case year = 'Year(s)';
 
     public function getLabel(): string|Htmlable|null
     {
@@ -23,8 +23,8 @@ enum Time: string implements HasLabel
     {
         $arr = [];
 
-        foreach (self::cases() as $key => $value) {
-            $arr[$key] = $value;
+        foreach (self::cases() as $case) {
+            $arr[$case->name] = $case->value;
         }
 
         return $arr;

@@ -7,15 +7,15 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum RequirementType: string implements HasLabel
 {
-    case Strength = 'strength';
-    case Dexterity = 'dexterity';
-    case Constitution = 'constitution';
-    case Intelligence = 'intelligence';
-    case Wisdom = 'wisdom';
-    case Charisma = 'charisma';
-    case Level = 'level';
-    case Class = 'class';
-    case Race = 'race';
+    case strength = 'Strength';
+    case dexterity = 'Dexterity';
+    case constitution = 'Constitution';
+    case intelligence = 'Intelligence';
+    case wisdom = 'Wisdom';
+    case charisma = 'Charisma';
+    case level = 'Level';
+    case class = 'Class';
+    case race = 'Race';
 
     public function getLabel(): string|Htmlable|null
     {
@@ -26,8 +26,8 @@ enum RequirementType: string implements HasLabel
     {
         $arr = [];
 
-        foreach (self::cases() as $key => $value) {
-            $arr[$key] = $value;
+        foreach (self::cases() as $case) {
+            $arr[$case->name] = $case->value;
         }
 
         return $arr;

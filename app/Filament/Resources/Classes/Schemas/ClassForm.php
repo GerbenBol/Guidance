@@ -13,8 +13,10 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Flex;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
@@ -22,6 +24,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 
@@ -72,7 +75,7 @@ class ClassForm
                                             Checkbox::make('can_cast_spells'),
                                             Select::make('spell_ability')
                                                 ->label('Spellcasting Ability')
-                                                ->options(Ability::class)
+                                                ->options(Ability::toArray())
                                                 ->native(false),
                                             Radio::make('has_own_spelllist')
                                                 ->hiddenLabel()
@@ -88,6 +91,7 @@ class ClassForm
                                                         ->options(fn (PlayerClass $record): array|Collection => PlayerClass::whereNot('id', $record->id)->pluck('name', 'id'))
                                                         ->searchable()
                                                         ->native(false)
+                                                        ->live()
                                                         ->suffixAction(
                                                             Action::make('checkoutSpellList')
                                                                 ->icon(Heroicon::AcademicCap)
@@ -110,37 +114,69 @@ class ClassForm
                                                     ->prefix('Cantrips: ', true)
                                                     ->numeric()
                                                     ->columnSpanFull(),
+                                                TextInput::make('spellslots'),
                                             ];
 
-                                            for ($lvl = 1; $lvl <= 20; $lvl++) {
-                                                $slots = [];
+                                            // for ($lvl = 1; $lvl <= 20; $lvl++) {
+                                            // $slots = [];
 
-                                                for ($slot = 1; $slot <= 9; $slot++) {
-                                                    $slots[] = TextInput::make('lvl'.$lvl.'slot'.$slot)
-                                                        ->hiddenLabel()
-                                                        ->disabled()
-                                                        ->aboveContent(Schema::center([
-                                                            Text::make($lvl),
-                                                            Action::make('lvl'.$lvl.'slot'.$slot.'increase')
-                                                                ->hiddenLabel()
-                                                                ->icon(Heroicon::ChevronUp)
-                                                                ->button()
-                                                                ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) + 1)),
-                                                        ]))
-                                                        ->belowContent(
-                                                            Schema::center(
-                                                                Action::make('lvl'.$lvl.'slot'.$slot.'decrease')
+                                            // for ($slot = 1; $slot <= 9; $slot++) {
+                                            //     $slots[] = TextInput::make('lvl'.$lvl.'slot'.$slot)
+                                            //         ->hiddenLabel()
+                                            //         ->disabled()
+                                            //         ->aboveContent(Schema::center([
+                                            //             Text::make($slot),
+                                            //             Action::make('lvl'.$lvl.'slot'.$slot.'increase')
+                                            //                 ->hiddenLabel()
+                                            //                 ->icon(Heroicon::ChevronUp)
+                                            //                 ->button()
+                                            //                 ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) + 1)),
+                                            //         ]))
+                                            //         ->belowContent(
+                                            //             Schema::center(
+                                            //                 Action::make('lvl'.$lvl.'slot'.$slot.'decrease')
+                                            //                     ->hiddenLabel()
+                                            //                     ->icon(Heroicon::ChevronDown)
+                                            //                     ->button()
+                                            //                     ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) - 1)),
+                                            //             )
+                                            //         );
+                                            // }
+                                            // $rows[] = Fieldset::make('Character Level '.$lvl)
+                                            //     ->schema([Flex::make($slots)->from('md')])
+                                            //     ->columns(1);
+                                            // }
+                                            $rows[] = Actions::make(function (): array {
+                                                $actions = [];
+
+                                                for ($lvl = 1; $lvl <= 20; $lvl++) {
+                                                    $actions[] = Action::make('lvl'.$lvl)
+                                                        ->label('Character Level '.$lvl)
+                                                        ->schema(function (): array {
+                                                            $inputs = [];
+
+                                                            for ($slot = 1; $slot <= 9; $slot++) {
+                                                                $inputs[] = TextInput::make('slot'.$slot)
                                                                     ->hiddenLabel()
-                                                                    ->icon(Heroicon::ChevronDown)
-                                                                    ->button()
-                                                                    ->action(fn (Get $get, Set $set) => $set('lvl'.$lvl.'slot'.$slot, ($get('lvl'.$lvl.'slot'.$slot) ?: 0) - 1)),
-                                                            )
-                                                        );
+                                                                    ->prefix('Level '.$slot.':')
+                                                                    ->numeric();
+                                                            }
+
+                                                            return [
+                                                                Grid::make([
+                                                                    'default' => 2,
+                                                                    'sm' => 3,
+                                                                ])
+                                                                    ->schema($inputs),
+                                                            ];
+                                                        })
+                                                        ->modalWidth(Width::Large)
+                                                        ->modalSubmitActionLabel('Apply');
                                                 }
-                                                $rows[] = Fieldset::make('Character Level '.$lvl)
-                                                    ->schema([Flex::make($slots)->from('md')])
-                                                    ->columns(1);
-                                            }
+
+                                                return $actions;
+                                            })
+                                                ->alignCenter();
 
                                             return $rows;
                                         })

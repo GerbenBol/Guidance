@@ -7,12 +7,12 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum Ability: string implements HasLabel
 {
-    case Strength = 'Strength';
-    case Dexterity = 'Dexterity';
-    case Constitution = 'Constitution';
-    case Intelligence = 'Intelligence';
-    case Wisdom = 'Wisdom';
-    case Charisma = 'Charisma';
+    case strength = 'Strength';
+    case dexterity = 'Dexterity';
+    case constitution = 'Constitution';
+    case intelligence = 'Intelligence';
+    case wisdom = 'Wisdom';
+    case charisma = 'Charisma';
 
     public function getLabel(): string|Htmlable|null
     {
@@ -23,8 +23,8 @@ enum Ability: string implements HasLabel
     {
         $arr = [];
 
-        foreach (self::cases() as $key => $value) {
-            $arr[$key] = $value;
+        foreach (self::cases() as $case) {
+            $arr[$case->name] = $case->value;
         }
 
         return $arr;
