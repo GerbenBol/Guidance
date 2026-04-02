@@ -19,4 +19,15 @@ enum Dice: string implements HasLabel
     {
         return $this->name;
     }
+
+    public static function toArray(): array
+    {
+        $arr = [];
+
+        foreach (self::cases() as $key => $value) {
+            $arr[$key] = $value;
+        }
+
+        return $arr;
+    }
 }

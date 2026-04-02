@@ -14,13 +14,22 @@ class Spell extends Model
         'short_desc',
         'description',
         'level',
-        'damage',
+        'components',
+        'arearange',
+        'casting_time',
+        'duration',
+        'effect',
+        'scaling',
         'school_id',
         'user_id',
     ];
 
     protected $casts = [
-        'damage' => 'array',
+        'components' => 'array',
+        'casting_time' => 'array',
+        'duration' => 'array',
+        'effect' => 'array',
+        'scaling' => 'array',
     ];
 
     public function school(): BelongsTo

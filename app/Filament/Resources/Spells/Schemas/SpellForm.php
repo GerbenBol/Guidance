@@ -38,14 +38,14 @@ class SpellForm
                 Textarea::make('short_desc')
                     ->label('Short Description'),
                 Textarea::make('description'),
-                Section::make('Damage')
+                Section::make('Effect')
                     ->schema([
-                        Repeater::make('damage')
+                        Repeater::make('effect')
                             ->hiddenLabel()
                             ->schema([
                                 Select::make('type')
-                                    ->label('Damage Type')
-                                    ->options(DamageType::all()->pluck('name', 'id'))
+                                    ->label('Type')
+                                    ->options(['Health', 'Temporary HP'] + DamageType::all()->pluck('name', 'id')->toArray())
                                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                                     ->searchable()
                                     ->native(false),
@@ -55,13 +55,50 @@ class SpellForm
                                     ->numeric(),
                                 Select::make('dice')
                                     ->label('Dice Type')
-                                    ->options(Dice::class)
+                                    ->options(Dice::toArray() + ['straight' => 'No Roll'])
                                     ->searchable()
                                     ->native(false),
                             ])
                             ->columns(3)
                             ->addActionLabel('Add damage'),
-                    ]),
+                    ])
+                    ->collapsible(),
+                Section::make('Scaling')
+                    ->schema([
+                        Textarea::make('scale_desc')
+                            ->label('Description'),
+                        Repeater::make('scaling')
+                            ->hiddenLabel()
+                            ->schema([
+                                Select::make('scale_moment')
+                                    ->label('Moment when scale happens')
+                                    ->options([
+                                        'Per Character Level',
+                                        'Per Spell Level',
+                                        'Certain Character Levels',
+                                        'Certain Spell Levels',
+                                        'Once',
+                                    ])
+                                    ->native(false),
+                                Select::make('type')
+                                    ->label('Type')
+                                    ->options(['Health', 'Temporary HP'] + DamageType::all()->pluck('name', 'id')->toArray())
+                                    ->searchable()
+                                    ->native(false),
+                                TextInput::make('amount')
+                                    ->label('Amount of Dice')
+                                    ->default(0)
+                                    ->numeric(),
+                                Select::make('dice')
+                                    ->label('Dice Type')
+                                    ->options(Dice::toArray() + ['straight' => 'No Roll'])
+                                    ->searchable()
+                                    ->native(false),
+                            ])
+                            ->columns(4)
+                            ->addActionLabel('Add scaling'),
+                    ])
+                    ->collapsible(),
             ])
             ->columns(1);
     }

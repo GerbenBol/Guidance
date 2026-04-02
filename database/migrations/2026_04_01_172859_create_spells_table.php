@@ -17,7 +17,12 @@ return new class extends Migration
             $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
             $table->integer('level')->unsigned();
-            $table->json('damage')->nullable();
+            $table->json('components')->nullable();
+            $table->string('arearange')->nullable();
+            $table->json('casting_time')->nullable();
+            $table->json('duration')->nullable();
+            $table->json('effect')->nullable();
+            $table->json('scaling')->nullable();
             $table->bigInteger('school_id')->unsigned()->nullable();
             $table->bigInteger('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

@@ -2,12 +2,31 @@
 
 namespace App\Enums;
 
-enum Time
+use Filament\Support\Contracts\HasLabel;
+use Illuminate\Contracts\Support\Htmlable;
+
+enum Time: string implements HasLabel
 {
-    case Minute;
-    case Hour;
-    case Day;
-    case Week;
-    case Month;
-    case Year;
+    case Minute = 'minute';
+    case Hour = 'hour';
+    case Day = 'day';
+    case Week = 'week';
+    case Month = 'month';
+    case Year = 'year';
+
+    public function getLabel(): string|Htmlable|null
+    {
+        return $this->name;
+    }
+
+    public static function toArray(): array
+    {
+        $arr = [];
+
+        foreach (self::cases() as $key => $value) {
+            $arr[$key] = $value;
+        }
+
+        return $arr;
+    }
 }
