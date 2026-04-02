@@ -51,15 +51,17 @@ class SpellForm
                                         'v' => 'Verbal',
                                         's' => 'Somatic',
                                         'm' => 'Material',
-                                    ]),
+                                    ])
+                                    ->live(),
                                 Textarea::make('materials')
                                     ->rows(4)
-                                    ->autosize(),
+                                    ->autosize()
+                                    ->disabled(fn (Get $get) => ! in_array('m', $get('components'))),
                             ]),
                         Fieldset::make('Range/ Area')
                             ->schema([
                                 TextInput::make('range')
-                                    ->visible(fn (Get $get): bool => in_array($get('range_type'), ['feet', 'mile'])),
+                                    ->visible(fn (Get $get): bool => in_array($get('range_type'), ['feet', 'mile', 'inch'])),
                                 Select::make('range_type')
                                     ->options([
                                         'self' => 'Self',
@@ -69,7 +71,7 @@ class SpellForm
                                         'mile' => 'Mile',
                                     ])
                                     ->native(false)
-                                    ->columnSpan(fn (Get $get): int => (str_contains($get('range_type'), 'feet') || str_contains($get('range_type'), 'mile') || str_contains($get('range_type'), 'inch')) ? 1 : 2)
+                                    ->columnSpan(fn (Get $get): int => in_array($get('range_type'), ['feet', 'mile', 'inch']) ? 1 : 2)
                                     ->live(),
                                 TextInput::make('area')
                                     ->suffix('ft.'),
