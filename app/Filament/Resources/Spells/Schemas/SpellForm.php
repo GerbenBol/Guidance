@@ -5,12 +5,16 @@ namespace App\Filament\Resources\Spells\Schemas;
 use App\Enums\Dice;
 use App\Models\DamageType;
 use App\Models\School;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Flex;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class SpellForm
@@ -38,6 +42,52 @@ class SpellForm
                 Textarea::make('short_desc')
                     ->label('Short Description'),
                 Textarea::make('description'),
+                Grid::make(2)
+                    ->schema([
+                        Fieldset::make('Components')
+                            ->schema([
+                                CheckboxList::make('components')
+                                    ->options([
+                                        'v' => 'Verbal',
+                                        's' => 'Somatic',
+                                        'm' => 'Material',
+                                    ]),
+                                Textarea::make('materials')
+                                    ->rows(4)
+                                    ->autosize(),
+                            ]),
+                        Fieldset::make('Range/ Area')
+                            ->schema([
+                                TextInput::make('range')
+                                    ->visible(fn (Get $get): bool => in_array($get('range_type'), ['feet', 'mile'])),
+                                Select::make('range_type')
+                                    ->options([
+                                        'self' => 'Self',
+                                        'touch' => 'Touch',
+                                        'inch' => 'Inch',
+                                        'feet' => 'Feet',
+                                        'mile' => 'Mile',
+                                    ])
+                                    ->native(false)
+                                    ->columnSpan(fn (Get $get): int => (str_contains($get('range_type'), 'feet') || str_contains($get('range_type'), 'mile') || str_contains($get('range_type'), 'inch')) ? 1 : 2)
+                                    ->live(),
+                                TextInput::make('area')
+                                    ->suffix('ft.'),
+                                Select::make('area_type')
+                                    ->options([
+                                        'cube' => 'Cube',
+                                        'line' => 'Line',
+                                        'cylinder' => 'Cylinder',
+                                        'emanation' => 'Emanation',
+                                        'sphere' => 'Sphere',
+                                    ])
+                                    ->native(false),
+                            ]),
+                        Fieldset::make('Casting Time')
+                            ->schema([]),
+                        Fieldset::make('Duration')
+                            ->schema([]),
+                    ]),
                 Section::make('Effect')
                     ->schema([
                         Repeater::make('effect')
