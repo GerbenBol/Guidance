@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Characters\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class CharacterForm
 {
@@ -14,6 +16,8 @@ class CharacterForm
     {
         return $schema
             ->components([
+                Hidden::make('player_id')
+                    ->default(Auth::user()->id),
                 TextInput::make('name')
                     ->inlineLabel()
                     ->columnSpanFull()

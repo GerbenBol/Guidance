@@ -9,6 +9,7 @@ use App\Models\DamageType;
 use App\Models\School;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -23,6 +24,7 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class SpellForm
 {
@@ -30,6 +32,8 @@ class SpellForm
     {
         return $schema
             ->components([
+                Hidden::make('user_id')
+                    ->default(Auth::user()->id),
                 Tabs::make()
                     ->tabs([
                         Tab::make('General')

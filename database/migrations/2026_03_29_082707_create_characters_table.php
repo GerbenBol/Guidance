@@ -21,7 +21,7 @@ return new class extends Migration
             $table->bigInteger('player_id')->unsigned();
 
             $table->foreign('player_id')->references('id')->on('users')->onDelete('cascade');
-            // $table->foreign('race_id')->references('id')->on('races')->onDelete('set null');
+            $table->foreign('race_id')->references('id')->on('races')->onDelete('set null');
             // $table->foreign('background_id')->references('id')->on('backgrounds')->onDelete('set null');
             $table->timestamps();
         });

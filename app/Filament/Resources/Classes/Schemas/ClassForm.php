@@ -27,6 +27,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class ClassForm
 {
@@ -38,12 +39,15 @@ class ClassForm
                 $operation = $operation[count($operation) - 1];
 
                 $general = [
+                    Hidden::make('user_id')
+                        ->default(Auth::user()->id),
                     TextInput::make('name')
                         ->afterLabel(FormService::makeHintIcon('The name of the class'))
                         ->unique()
-                        ->required(),
-                    TextInput::make('source')
-                        ->afterLabel(FormService::makeHintIcon('Original source of this item, such as "Tasha\'s Cauldron of Everything" or Homebrew')),
+                        ->required()
+                        ->columnSpanFull(),
+                    // TextInput::make('source')
+                    //     ->afterLabel(FormService::makeHintIcon('Original source of this item, such as "Tasha\'s Cauldron of Everything" or Homebrew')),
                     Textarea::make('short_desc')
                         ->label('Short Description')
                         ->afterLabel(FormService::makeHintIcon('A short description, which is shown in the character builder and in the class overview'))
