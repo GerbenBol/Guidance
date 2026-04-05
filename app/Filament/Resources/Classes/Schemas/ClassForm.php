@@ -41,10 +41,14 @@ class ClassForm
                 $general = [
                     Hidden::make('user_id')
                         ->default(Auth::user()->id),
-                    TextInput::make('name')
-                        ->afterLabel(FormService::makeHintIcon('The name of the class'))
-                        ->unique()
-                        ->required()
+                    Grid::make(4)
+                        ->schema([
+                            TextInput::make('name')
+                                ->afterLabel(FormService::makeHintIcon('The name of the class'))
+                                ->required()
+                                ->columnSpan(3),
+                            FormService::getSystemVersionInput(),
+                        ])
                         ->columnSpanFull(),
                     // TextInput::make('source')
                     //     ->afterLabel(FormService::makeHintIcon('Original source of this item, such as "Tasha\'s Cauldron of Everything" or Homebrew')),

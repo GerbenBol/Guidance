@@ -7,6 +7,7 @@ use App\Enums\Dice;
 use App\Enums\Time;
 use App\Models\DamageType;
 use App\Models\School;
+use App\Services\FormService;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
@@ -40,8 +41,8 @@ class SpellForm
                             ->schema([
                                 Flex::make([
                                     TextInput::make('name')
-                                        ->unique()
                                         ->required(),
+                                    FormService::getSystemVersionInput(),
                                     Select::make('level')
                                         ->options([
                                             'Cantrip', 1, 2, 3,

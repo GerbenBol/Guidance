@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('characters', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('name');
+            $table->string('system_version')->nullable();
             $table->bigInteger('race_id')->nullable()->unsigned();
             $table->bigInteger('background_id')->nullable()->unsigned();
             $table->json('race_options')->nullable();

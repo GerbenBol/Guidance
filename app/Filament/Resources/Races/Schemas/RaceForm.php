@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Races\Schemas;
 
+use App\Services\FormService;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
@@ -23,9 +25,13 @@ class RaceForm
                     ->tabs([
                         Tab::make('General')
                             ->schema([
-                                TextInput::make('name')
-                                    ->unique()
-                                    ->required(),
+                                Grid::make(4)
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->columnSpan(3)
+                                            ->required(),
+                                        FormService::getSystemVersionInput(),
+                                    ]),
                                 Textarea::make('short_desc')
                                     ->label('Short Description'),
                                 Textarea::make('description'),

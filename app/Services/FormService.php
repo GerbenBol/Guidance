@@ -7,6 +7,7 @@ use App\Models\Spell;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Icon;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -110,5 +111,14 @@ class FormService
                     ->action(fn (Set $set, array $data) => $set('spell_filters', json_encode($data))),
                 true
             );
+    }
+
+    public static function getSystemVersionInput(): TextInput
+    {
+        return TextInput::make('system_version')
+            ->label('System Version')
+            ->datalist([
+                '5e', '5.5e',
+            ]);
     }
 }
