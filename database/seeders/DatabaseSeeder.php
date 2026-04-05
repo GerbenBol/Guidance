@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
 
         new SchoolSeeder()->run();
         new DamageTypeSeeder()->run();
+        new SkillSeeder()->run();
 
         // Testing only
         new TempTestingSeeder()->run();
