@@ -177,7 +177,7 @@ class SpellForm
                                                     ->native(false),
                                             ])
                                             ->columns(3)
-                                            ->addActionLabel('Add damage'),
+                                            ->addActionLabel('Add effect'),
                                     ])
                                     ->collapsible(),
                                 Section::make('Scaling')
