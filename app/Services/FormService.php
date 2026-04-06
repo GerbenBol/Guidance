@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\School;
 use App\Models\Spell;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Icon;
 use Filament\Schemas\Components\Utilities\Get;
@@ -113,6 +115,9 @@ class FormService
             );
     }
 
+    /**
+     * Get a TextInput for the system version, with a datalist of versions.
+     */
     public static function getSystemVersionInput(): TextInput
     {
         return TextInput::make('system_version')
@@ -120,5 +125,51 @@ class FormService
             ->datalist([
                 '5e', '5.5e',
             ]);
+    }
+
+    /**
+     * Get the array schema for a feature form.
+     *
+     * @param  array  $includedInputs  Optional. An array which includes all names of inputs that should be included. Defaults to all.
+     */
+    public static function getFeatureForm(array $includedInputs = ['name', 'lvl', 'snippet', 'description', 'grants', 'replaces', 'show_in_actions', 'has_active']): array
+    {
+        $inputs = [];
+
+        foreach ($includedInputs as $input) {
+            $inputs[] = match ($input) {
+                'name' => TextInput::make($input)
+                    ->columnSpan(in_array('lvl', $includedInputs) ? 3 : 4),
+                'lvl' => TextInput::make($input)
+                    ->label('Level Gained')
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(20),
+                'snippet' => Textarea::make($input)
+                    ->columnSpanFull(),
+                'description' => Textarea::make($input)
+                    ->columnSpanFull(),
+                'grants' => Select::make($input)
+                    ->hiddenLabel()
+                    ->prefix('Grants:')
+                    ->options([
+                        'Resistance',
+                        'Immunity',
+                        'Vulnerability',
+                        'Bonus',
+                        'Advantage',
+                        'Disadvantage',
+                        'Sense',
+                        'Proficiency',
+                        'Language',
+                    ])
+                    ->searchable(),
+                'replaces' => Checkbox::make($input),
+                'show_in_actions' => Checkbox::make($input),
+                'has_active' => Checkbox::make($input),
+            };
+        }
+
+        return $inputs;
     }
 }
