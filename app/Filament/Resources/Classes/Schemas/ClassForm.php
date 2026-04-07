@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Classes\Schemas;
 
 use App\Enums\Ability;
 use App\Enums\Dice;
+use App\Filament\Forms\Components\SpellSlotItem;
 use App\Models\PlayerClass;
 use App\Models\Skill;
 use App\Services\FormService;
@@ -232,6 +233,7 @@ class ClassForm
                                                     TextInput::make('spellslots'),
                                                 ];
 
+                                                // ----- Old ver using fieldsets -----
                                                 // for ($lvl = 1; $lvl <= 20; $lvl++) {
                                                 // $slots = [];
 
@@ -261,47 +263,94 @@ class ClassForm
                                                 //     ->schema([Flex::make($slots)->from('md')])
                                                 //     ->columns(1);
                                                 // }
-                                                $rows[] = Actions::make(function (): array {
-                                                    $actions = [];
 
-                                                    for ($lvl = 1; $lvl <= 20; $lvl++) {
-                                                        $actions[] = Action::make('lvl'.$lvl)
-                                                            ->label('Character Level '.$lvl)
-                                                            ->schema(function (): array {
-                                                                $inputs = [];
+                                                // ----- Newer version using buttons and modal -----
+                                                // $rows[] = Actions::make(function (): array {
+                                                //     $actions = [];
 
-                                                                for ($slot = 1; $slot <= 9; $slot++) {
-                                                                    $inputs[] = TextInput::make('slot'.$slot)
-                                                                        ->hiddenLabel()
-                                                                        ->prefix('Level '.$slot.':')
-                                                                        ->numeric();
-                                                                }
+                                                //     for ($lvl = 1; $lvl <= 20; $lvl++) {
+                                                //         $actions[] = Action::make('lvl'.$lvl)
+                                                //             ->label('Character Level '.$lvl)
+                                                //             ->schema(function (): array {
+                                                //                 $inputs = [];
 
-                                                                return [
-                                                                    Grid::make([
-                                                                        'default' => 2,
-                                                                        'sm' => 3,
-                                                                    ])
-                                                                        ->schema($inputs),
-                                                                ];
-                                                            })
-                                                            ->modalWidth(Width::Large)
-                                                            ->modalSubmitActionLabel('Apply');
+                                                //                 for ($slot = 1; $slot <= 9; $slot++) {
+                                                //                     $inputs[] = TextInput::make('slot'.$slot)
+                                                //                         ->hiddenLabel()
+                                                //                         ->prefix('Level '.$slot.':')
+                                                //                         ->numeric();
+                                                //                 }
+
+                                                //                 return [
+                                                //                     Grid::make([
+                                                //                         'default' => 2,
+                                                //                         'sm' => 3,
+                                                //                     ])
+                                                //                         ->schema($inputs),
+                                                //                 ];
+                                                //             })
+                                                //             ->modalWidth(Width::Large)
+                                                //             ->modalSubmitActionLabel('Apply');
+                                                //     }
+
+                                                //     return $actions;
+                                                // })
+                                                //     ->alignCenter();
+
+                                                // ----- Newest version -----
+                                                $rows[] = Hidden::make('open_section');
+                                                for ($lvl = 1; $lvl <= 20; $lvl++) {
+                                                    $slotItems = [];
+
+                                                    for ($slot = 1; $slot <= 9; $slot++) {
+                                                        $slotItems[] = SpellSlotItem::make('lvl'.$lvl.'slot'.$slot)
+                                                            ->label('Slot Level '.$slot)
+                                                            ->hiddenLabel();
                                                     }
-
-                                                    return $actions;
-                                                })
-                                                    ->alignCenter();
+                                                    $rows[] = Section::make('Character Level '.$lvl)
+                                                        ->schema($slotItems)
+                                                        ->headerActions([
+                                                            Action::make('skipToFirst')
+                                                                ->hiddenLabel()
+                                                                ->button()
+                                                                ->size('sm')
+                                                                ->icon(Heroicon::ChevronDoubleLeft)
+                                                                ->action(fn (Set $set) => $set('open_section', 1))
+                                                                ->visible($lvl != 1),
+                                                            Action::make('previousSection')
+                                                                ->hiddenLabel()
+                                                                ->button()
+                                                                ->size('sm')
+                                                                ->icon(Heroicon::ChevronLeft)
+                                                                ->action(fn (Set $set) => $set('open_section', $lvl - 1))
+                                                                ->visible($lvl != 1),
+                                                            Action::make('nextSection')
+                                                                ->hiddenLabel()
+                                                                ->button()
+                                                                ->size('sm')
+                                                                ->icon(Heroicon::ChevronRight)
+                                                                ->action(fn (Set $set) => $set('open_section', $lvl + 1))
+                                                                ->visible($lvl != 20),
+                                                            Action::make('skipToLast')
+                                                                ->hiddenLabel()
+                                                                ->button()
+                                                                ->size('sm')
+                                                                ->icon(Heroicon::ChevronDoubleRight)
+                                                                ->action(fn (Set $set) => $set('open_section', 20))
+                                                                ->visible($lvl != 20),
+                                                        ])
+                                                        ->visible(fn (Get $get): bool => $get('open_section') ? $get('open_section') == $lvl : $lvl == 1);
+                                                }
 
                                                 return $rows;
                                             })
-                                            // ->collapsible()
-                                            ->collapsed()
+                                            ->collapsible()
+                                            // ->collapsed()
                                             ->secondary(),
                                     ])
                                     ->columns(2),
                             ])
-                            ->activeTab(2)
+                            ->activeTab(3)
                             ->columnSpanFull(),
                     ];
                 }
