@@ -305,7 +305,9 @@ class ClassForm
                                                     for ($slot = 1; $slot <= 9; $slot++) {
                                                         $slotItems[] = SpellSlotItem::make('lvl'.$lvl.'slot'.$slot)
                                                             ->label('Slot Level '.$slot)
-                                                            ->hiddenLabel();
+                                                            ->hiddenLabel()
+                                                            ->inputDown($lvl, $slot)
+                                                            ->inputUp($lvl, $slot);
                                                     }
                                                     $rows[] = Section::make('Character Level '.$lvl)
                                                         ->schema($slotItems)

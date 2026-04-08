@@ -28,6 +28,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         Log::info('initialize panel');
+
         return $panel
             ->default()
             ->id('admin')

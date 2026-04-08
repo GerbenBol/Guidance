@@ -16,11 +16,13 @@
         {{ $getLabel() }}
 
         <div style="float:right">
-            <x-filament::button wire:click="inputDown" size="xs" icon="heroicon-m-minus" style="margin-right:5px;"></x-filament::button>
+            {{-- <x-filament::button wire:click="inputDown" size="xs" icon="heroicon-m-minus" style="margin-right:5px;"></x-filament::button> --}}
+            {{ $getDownAction() }}
 
             {{ $field->getState() ?? '0' }}
 
-            <x-filament::button wire:click="inputUp" size="xs" icon="heroicon-m-plus" style="margin-left:5px;"></x-filament::button>
+            {{ $getUpAction() }}
+            {{-- <x-filament::button wire:click="inputUp" size="xs" icon="heroicon-m-plus" style="margin-left:5px;"></x-filament::button> --}}
         </div>
     </div>
 </x-dynamic-component>
