@@ -2,6 +2,9 @@
     :component="$getFieldWrapperView()"
     :field="$field"
 >
+    @php
+        $key = $getKey();
+    @endphp
     <style>
         .slot-item {
             background-color: rgb(73, 73, 73);
@@ -15,14 +18,33 @@
     <div class="slot-item">
         {{ $getLabel() }}
 
-        <div style="float:right">
-            {{-- <x-filament::button wire:click="inputDown" size="xs" icon="heroicon-m-minus" style="margin-right:5px;"></x-filament::button> --}}
-            {{ $getDownAction() }}
+        <input type="hidden" wire:model="{{ $getStatePath() }}" />
+        
+        <div style="float:right;display:flex;"
+            x-data="{
+                slots: { amount: {{ $field->getState() ?? '0' }} },
+                async up() {
+                    this.slots = await $wire.callSchemaComponentMethod(
+                        @js($key),
+                        'stateUp',
+                        { state: this.slots }
+                    )
+                },
+                async down() {
+                    this.slots = await $wire.callSchemaComponentMethod(
+                        @js($key),
+                        'stateDown',
+                        { state: this.slots }
+                    )
+                }
+            }">
+            <x-filament::button x-on:click="down" size="xs" icon="heroicon-m-minus" style="margin-right:5px;"></x-filament::button>
 
-            {{ $field->getState() ?? '0' }}
+            <template x-if="slots" x-data="{ state: $wire.$entangle('{{ $getStatePath() }}') }">
+                <p x-text="`${slots.amount}`"></p>
+            </template>
 
-            {{ $getUpAction() }}
-            {{-- <x-filament::button wire:click="inputUp" size="xs" icon="heroicon-m-plus" style="margin-left:5px;"></x-filament::button> --}}
+            <x-filament::button x-on:click="up" size="xs" icon="heroicon-m-plus" style="margin-left:5px;"></x-filament::button>
         </div>
     </div>
 </x-dynamic-component>

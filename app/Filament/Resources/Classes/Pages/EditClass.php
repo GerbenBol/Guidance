@@ -27,6 +27,16 @@ class EditClass extends EditRecord
             }
         }
 
+        if (isset($data['spellslots'])) {
+            $levels = json_decode($data['spellslots'], true);
+
+            foreach ($levels as $clvl => $slots) {
+                foreach ($slots as $slvl => $state) {
+                    $data[$clvl.'_'.$slvl] = $state;
+                }
+            }
+        }
+
         return $data;
     }
 
@@ -39,6 +49,7 @@ class EditClass extends EditRecord
             'borrows_from',
             'extra_spells',
             'spells',
+            'spellslots',
         ];
 
         foreach ($spell_inputs as $inp) {

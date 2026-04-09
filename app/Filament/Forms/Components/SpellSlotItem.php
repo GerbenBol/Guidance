@@ -2,53 +2,28 @@
 
 namespace App\Filament\Forms\Components;
 
-use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
-use Filament\Support\Icons\Heroicon;
+use Filament\Support\Components\Attributes\ExposedLivewireMethod;
 
 class SpellSlotItem extends Field
 {
     protected string $view = 'filament.forms.components.spell-slot-item';
 
-    protected ?Action $down;
-
-    protected ?Action $up;
-
-    public function inputDown(int $level, int $slot): static
+    #[ExposedLivewireMethod]
+    public function stateUp($state): array
     {
-        $this->down = Action::make('lvl'.$level.'slot'.$slot.'decrease')
-            ->hiddenLabel()
-            ->button()
-            ->size('xs')
-            ->icon(Heroicon::Minus)
-            ->extraAttributes(['style' => 'margin-right:5px'])
-            ->action(fn (Get $get, Set $set) => $set('lvl'.$level.'slot'.$slot, $get('lvl'.$level.'slot'.$slot) - 1));
+        $this->state(++$state['amount']);
+        $this->callAfterStateUpdated();
 
-        return $this;
+        return ['amount' => $state['amount']];
     }
 
-    public function getDownAction(): ?Action
+    #[ExposedLivewireMethod]
+    public function stateDown($state): array
     {
-        return $this->down;
-    }
+        $this->state(--$state['amount']);
+        $this->callAfterStateUpdated();
 
-    public function inputUp(int $level, int $slot): static
-    {
-        $this->up = Action::make('lvl'.$level.'slot'.$slot.'increase')
-            ->hiddenLabel()
-            ->button()
-            ->size('xs')
-            ->icon(Heroicon::Plus)
-            ->extraAttributes(['style' => 'margin-left:5px'])
-            ->action(fn (Get $get, Set $set) => $set('lvl'.$level.'slot'.$slot, $get('lvl'.$level.'slot'.$slot) + 1));
-
-        return $this;
-    }
-
-    public function getUpAction(): ?Action
-    {
-        return $this->up;
+        return ['amount' => $state['amount']];
     }
 }
