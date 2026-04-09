@@ -38,6 +38,6 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        return true;
+        return false;
     }
 }
