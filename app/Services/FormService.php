@@ -7,9 +7,11 @@ use App\Models\Spell;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Icon;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -132,7 +134,7 @@ class FormService
      *
      * @param  array  $includedInputs  Optional. An array which includes all names of inputs that should be included. Defaults to all.
      */
-    public static function getFeatureForm(array $includedInputs = ['name', 'lvl', 'snippet', 'description', 'grants', 'replaces', 'show_in_actions', 'has_active']): array
+    public static function getFeatureForm(array $includedInputs = ['name', 'lvl', 'snippet', 'description', 'modifiers', /* 'grants', */ 'replaces', 'show_in_actions', 'has_active']): array
     {
         $inputs = [];
 
@@ -149,21 +151,55 @@ class FormService
                     ->columnSpanFull(),
                 'description' => Textarea::make($input)
                     ->columnSpanFull(),
-                'grants' => Select::make($input)
-                    ->hiddenLabel()
-                    ->prefix('Grants:')
-                    ->options([
-                        'Resistance',
-                        'Immunity',
-                        'Vulnerability',
-                        'Bonus',
-                        'Advantage',
-                        'Disadvantage',
-                        'Sense',
-                        'Proficiency',
-                        'Language',
+                'modifiers' => Repeater::make($input)
+                    ->schema([
+                        FusedGroup::make([
+                            Select::make('grant')
+                                ->prefix('Grants:')
+                                ->options([
+                                    'Resistance',
+                                    'Immunity',
+                                    'Vulnerability',
+                                    'Advantage',
+                                    'Disadvantage',
+                                    'Ability',
+                                    'Attack Roll',
+                                    'Saving Throw',
+                                    'Skills',
+                                    'Damage',
+                                    'Sense',
+                                    'Proficiency',
+                                    'Language',
+                                    'Speed',
+                                    'Ignore',
+                                    'Weapon Mastery',
+                                ])
+                                ->searchable(),
+                            Select::make('on')
+                                ->prefix('On:')
+                                ->searchable(),
+                            TextInput::make('modifier')
+                                ->prefix('Modifier:'),
+                        ])
+                            ->columns(3),
+                        Checkbox::make('replace'),
                     ])
-                    ->searchable(),
+                    ->columnSpanFull(),
+                // 'grants' => Select::make($input)
+                //     ->hiddenLabel()
+                //     ->prefix('Grants:')
+                //     ->options([
+                //         'Resistance',
+                //         'Immunity',
+                //         'Vulnerability',
+                //         'Bonus',
+                //         'Advantage',
+                //         'Disadvantage',
+                //         'Sense',
+                //         'Proficiency',
+                //         'Language',
+                //     ])
+                //     ->searchable(),
                 'replaces' => Checkbox::make($input),
                 'show_in_actions' => Checkbox::make($input),
                 'has_active' => Checkbox::make($input),

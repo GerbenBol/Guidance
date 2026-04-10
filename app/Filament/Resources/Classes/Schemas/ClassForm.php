@@ -247,39 +247,37 @@ class ClassForm
                                                                 $set('spellslots', json_encode($slots));
                                                             });
                                                     }
-                                                    $rows[] = Section::make('Character Level '.$lvl)
+                                                    $rows[] = Section::make()
                                                         ->schema($slotItems)
-                                                        ->headerActions([
-                                                            Action::make('skipToFirst')
+                                                        ->afterHeader([
+                                                            Select::make('active_level')
                                                                 ->hiddenLabel()
-                                                                ->button()
-                                                                ->size('sm')
-                                                                ->icon(Heroicon::ChevronDoubleLeft)
-                                                                ->action(fn (Set $set) => $set('open_section', 1))
-                                                                ->visible($lvl != 1),
-                                                            Action::make('previousSection')
-                                                                ->hiddenLabel()
-                                                                ->button()
-                                                                ->size('sm')
-                                                                ->icon(Heroicon::ChevronLeft)
-                                                                ->action(fn (Set $set) => $set('open_section', $lvl - 1))
-                                                                ->visible($lvl != 1),
-                                                            Action::make('nextSection')
-                                                                ->hiddenLabel()
-                                                                ->button()
-                                                                ->size('sm')
-                                                                ->icon(Heroicon::ChevronRight)
-                                                                ->action(fn (Set $set) => $set('open_section', $lvl + 1))
-                                                                ->visible($lvl != 20),
-                                                            Action::make('skipToLast')
-                                                                ->hiddenLabel()
-                                                                ->button()
-                                                                ->size('sm')
-                                                                ->icon(Heroicon::ChevronDoubleRight)
-                                                                ->action(fn (Set $set) => $set('open_section', 20))
-                                                                ->visible($lvl != 20),
+                                                                ->live()
+                                                                ->native(false)
+                                                                ->options(function (): array {
+                                                                    $lvls = [];
+
+                                                                    for ($i = 1; $i <= 20; $i++) {
+                                                                        $lvls[$i] = 'Character Level '.$i;
+                                                                    }
+
+                                                                    return $lvls;
+                                                                })
+                                                                ->formatStateUsing(fn (?string $state): string => $state ?? 1)
+                                                                ->prefixAction(
+                                                                    Action::make('previousSection')
+                                                                        ->icon(Heroicon::ChevronLeft)
+                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') - 1)),
+                                                                    true
+                                                                )
+                                                                ->suffixAction(
+                                                                    Action::make('nextSection')
+                                                                        ->icon(Heroicon::ChevronRight)
+                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') + 1)),
+                                                                    true
+                                                                ),
                                                         ])
-                                                        ->visible(fn (Get $get): bool => $get('open_section') ? $get('open_section') == $lvl : $lvl == 1);
+                                                        ->visible(fn (Get $get): bool => $get('active_level') ? $get('active_level') == $lvl : $lvl == 1);
                                                 }
 
                                                 return $rows;
@@ -290,7 +288,7 @@ class ClassForm
                                     ])
                                     ->columns(2),
                             ])
-                            ->activeTab(3)
+                            ->activeTab(2)
                             ->columnSpanFull(),
                     ];
                 }
