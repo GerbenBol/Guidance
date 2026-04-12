@@ -29,4 +29,15 @@ enum Ability: string implements HasLabel
 
         return $arr;
     }
+
+    public static function saveArray(): array
+    {
+        $arr = [];
+
+        foreach (self::cases() as $case) {
+            $arr[$case->name] = $case->value.' Save';
+        }
+
+        return $arr;
+    }
 }

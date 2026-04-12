@@ -147,6 +147,7 @@ class ClassForm
                                                     })
                                                     ->multiple(),
                                             ])
+                                            ->collapsible()
                                             ->secondary(),
                                         Section::make('Subclass')
                                             ->schema([
@@ -166,6 +167,7 @@ class ClassForm
                                                     })
                                                     ->searchable(),
                                             ])
+                                            ->collapsible()
                                             ->columns(2)
                                             ->secondary(),
                                         Repeater::make('features')
@@ -175,7 +177,7 @@ class ClassForm
                                             ->reorderable(false)
                                             ->collapsible()
                                             ->addActionLabel('Add feature')
-                                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                                            ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.($state['lvl'] ? '(Level '.$state['lvl'].' feature)' : '')))
                                             ->columnSpanFull(),
                                     ])
                                     ->columns(2),
@@ -267,13 +269,15 @@ class ClassForm
                                                                 ->prefixAction(
                                                                     Action::make('previousSection')
                                                                         ->icon(Heroicon::ChevronLeft)
-                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') - 1)),
+                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') - 1))
+                                                                        ->visible(fn (Get $get): bool => $get('active_level') != 1),
                                                                     true
                                                                 )
                                                                 ->suffixAction(
                                                                     Action::make('nextSection')
                                                                         ->icon(Heroicon::ChevronRight)
-                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') + 1)),
+                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') + 1))
+                                                                        ->visible(fn (Get $get): bool => $get('active_level') != 20),
                                                                     true
                                                                 ),
                                                         ])

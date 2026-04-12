@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\Ability;
+use App\Models\DamageType;
 use App\Models\School;
+use App\Models\Skill;
 use App\Models\Spell;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
@@ -141,12 +144,14 @@ class FormService
         foreach ($includedInputs as $input) {
             $inputs[] = match ($input) {
                 'name' => TextInput::make($input)
+                    ->live()
                     ->columnSpan(in_array('lvl', $includedInputs) ? 3 : 4),
                 'lvl' => TextInput::make($input)
                     ->label('Level Gained')
                     ->numeric()
                     ->minValue(0)
-                    ->maxValue(20),
+                    ->maxValue(20)
+                    ->live(),
                 'snippet' => Textarea::make($input)
                     ->columnSpanFull(),
                 'description' => Textarea::make($input)
@@ -156,34 +161,66 @@ class FormService
                         FusedGroup::make([
                             Select::make('grant')
                                 ->prefix('Grants:')
+                                ->live()
                                 ->options([
-                                    'Resistance',
-                                    'Immunity',
-                                    'Vulnerability',
-                                    'Advantage',
-                                    'Disadvantage',
-                                    'Ability',
-                                    'Attack Roll',
-                                    'Saving Throw',
-                                    'Skills',
-                                    'Damage',
-                                    'Sense',
-                                    'Proficiency',
-                                    'Language',
-                                    'Speed',
-                                    'Ignore',
-                                    'Weapon Mastery',
+                                    'Resistance', 'Immunity', 'Vulnerability', // 0, 1, 2
+                                    'Advantage', 'Disadvantage', // 3, 4
+                                    'Ability', 'Saving Throw', // 5, 6
+                                    'Skills', // 7
+                                    'Proficiency', // 8
+                                    'Attack Roll', // 9
+                                    'Damage', // 10
+                                    'Sense', // 11
+                                    'Language', // 12
+                                    'Speed', // 13
+                                    'Ignore', // 14
+                                    'Weapon Mastery', // 15
                                 ])
                                 ->searchable(),
                             Select::make('on')
                                 ->prefix('On:')
+                                ->options(fn (Get $get): array => match ($get('grant')) {
+                                    0, 1, 2 => DamageType::all()->pluck('name', 'id')->toArray(),
+                                    3, 4 => [
+                                        'Effect',
+                                        'Condition',
+                                        'Ability Check',
+                                        'Skill',
+                                        'Saving Throw',
+                                        'Initiative',
+                                        'Attack rolls',
+                                    ],
+                                    5, 6 => Ability::toArray(),
+                                    7 => Skill::all()->pluck('name', 'id')->toArray(),
+                                    8 => Skill::all()->pluck('name', 'id')->toArray() + Ability::saveArray(), // + tools
+                                    9 => [], // specific weapon/general
+                                    10 => [], // on specific type
+                                    11 => [
+                                        'Darkvision',
+                                        'Blindsight',
+                                        'Tremorsense',
+                                        'Truesight',
+                                    ],
+                                    12 => [], // languages
+                                    13 => [
+                                        'Walking',
+                                        'Climbing',
+                                        'Flying',
+                                        'Burrowing',
+                                        'Swimming',
+                                    ],
+                                    14 => [], // speed reductions armor etc.
+                                    15 => [], // weapon masteries
+                                    default => [],
+                                })
                                 ->searchable(),
-                            TextInput::make('modifier')
-                                ->prefix('Modifier:'),
+                            // TextInput::make('modifier')
+                            //     ->prefix('Modifier:'),
                         ])
                             ->columns(3),
                         Checkbox::make('replace'),
                     ])
+                    ->addActionLabel('Add modifier')
                     ->columnSpanFull(),
                 // 'grants' => Select::make($input)
                 //     ->hiddenLabel()
