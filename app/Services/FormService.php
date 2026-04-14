@@ -163,57 +163,65 @@ class FormService
                                 ->prefix('Grants:')
                                 ->live()
                                 ->options([
-                                    'Resistance', 'Immunity', 'Vulnerability', // 0, 1, 2
-                                    'Advantage', 'Disadvantage', // 3, 4
-                                    'Ability', 'Saving Throw', // 5, 6
-                                    'Skills', // 7
-                                    'Proficiency', // 8
-                                    'Attack Roll', // 9
-                                    'Damage', // 10
-                                    'Sense', // 11
-                                    'Language', // 12
-                                    'Speed', // 13
-                                    'Ignore', // 14
-                                    'Weapon Mastery', // 15
+                                    'res' => 'Resistance', 'imm' => 'Immunity', 'vul' => 'Vulnerability',
+                                    'adv' => 'Advantage', 'dadv' => 'Disadvantage',
+                                    'abi' => 'Ability', 'save' => 'Saving Throw',
+                                    'skill' => 'Skill',
+                                    'prof' => 'Proficiency',
+                                    // 'ac' => 'Armor Class',
+                                    'atk' => 'Attack Roll',
+                                    'dmg' => 'Damage',
+                                    'sen' => 'Sense',
+                                    'lang' => 'Language',
+                                    'spd' => 'Speed',
+                                    'ign' => 'Ignore',
+                                    'wm' => 'Weapon Mastery',
                                 ])
                                 ->searchable(),
-                            Select::make('on')
-                                ->prefix('On:')
-                                ->options(fn (Get $get): array => match ($get('grant')) {
-                                    0, 1, 2 => DamageType::all()->pluck('name', 'id')->toArray(),
-                                    3, 4 => [
-                                        'Effect',
-                                        'Condition',
-                                        'Ability Check',
-                                        'Skill',
-                                        'Saving Throw',
-                                        'Initiative',
-                                        'Attack rolls',
-                                    ],
-                                    5, 6 => Ability::toArray(),
-                                    7 => Skill::all()->pluck('name', 'id')->toArray(),
-                                    8 => Skill::all()->pluck('name', 'id')->toArray() + Ability::saveArray(), // + tools
-                                    9 => [], // specific weapon/general
-                                    10 => [], // on specific type
-                                    11 => [
-                                        'Darkvision',
-                                        'Blindsight',
-                                        'Tremorsense',
-                                        'Truesight',
-                                    ],
-                                    12 => [], // languages
-                                    13 => [
-                                        'Walking',
-                                        'Climbing',
-                                        'Flying',
-                                        'Burrowing',
-                                        'Swimming',
-                                    ],
-                                    14 => [], // speed reductions armor etc.
-                                    15 => [], // weapon masteries
-                                    default => [],
-                                })
-                                ->searchable(),
+                            // Select::make('on')
+                            //     ->prefix('On:')
+                            //     ->options(fn (Get $get): array => match ($get('grant')) {
+                            //         'res', 'imm', 'vul' => DamageType::all()->pluck('name', 'id')->toArray(),
+                            //         'adv', 'dadv' => [
+                            //             'eft' => 'Effect',
+                            //             'cond' => 'Condition',
+                            //             'abichk' => 'Ability Check',
+                            //             'skill' => 'Skill',
+                            //             'save' => 'Saving Throw',
+                            //             'init' => 'Initiative',
+                            //             'atk' => 'Attack rolls',
+                            //         ],
+                            //         'abi', 'save' => Ability::toArray(),
+                            //         'skill' => Skill::all()->pluck('name', 'id')->toArray(),
+                            //         'prof' => Skill::all()->pluck('name', 'id')->toArray() + Ability::saveArray(), // + tools
+                            //         'ac' => [
+                            //             'base' => 'Base Armor Class',
+                            //             'static' => 'Static bonus',
+                            //             'repldex' => 'Add Ability (Replace Dexterity)',
+                            //             'addabi' => 'Add Ability (+ Dexterity)'
+                            //         ],
+                            //         'atk' => [], // specific weapon/general
+                            //         'dmg' => [], // on specific type
+                            //         'sen' => [
+                            //             'dvis' => 'Darkvision',
+                            //             'bsight' => 'Blindsight',
+                            //             'tsense' => 'Tremorsense',
+                            //             'tsight' => 'Truesight',
+                            //         ],
+                            //         'lang' => [], // languages
+                            //         'spd' => [
+                            //             'walk' => 'Walking',
+                            //             'climb' => 'Climbing',
+                            //             'fly' => 'Flying',
+                            //             'burrow' => 'Burrowing',
+                            //             'swim' => 'Swimming',
+                            //         ],
+                            //         'ign' => [], // speed reductions armor etc.
+                            //         'wm' => [], // weapon masteries
+                            //         default => [],
+                            //     })
+                            //     ->searchable()
+                            //     ->columnSpan(fn (Get $get): int => in_array($get('grant'), ['res', 'imm', 'vul', 'wm']) ? 2 : 1),
                             // TextInput::make('modifier')
                             //     ->prefix('Modifier:'),
                         ])
