@@ -177,7 +177,7 @@ class ClassForm
                                             ->reorderable(false)
                                             ->collapsible()
                                             ->addActionLabel('Add feature')
-                                            ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.($state['lvl'] ? '(Level '.$state['lvl'].' feature)' : '')))
+                                            ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.($state['level'] ? '(Level '.$state['level'].' feature)' : '')))
                                             ->columnSpanFull(),
                                     ])
                                     ->columns(2),

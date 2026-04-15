@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName(env('APP_NAME', 'dnd-app-thing-temp-name'))
+            ->brandName(env('APP_NAME', config('app.name', 'dnd-app-thing-temp-name')))
             ->login()
             ->colors([
                 'primary' => Color::Amber,

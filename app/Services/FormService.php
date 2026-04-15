@@ -137,16 +137,24 @@ class FormService
      *
      * @param  array  $includedInputs  Optional. An array which includes all names of inputs that should be included. Defaults to all.
      */
-    public static function getFeatureForm(array $includedInputs = ['name', 'lvl', 'snippet', 'description', 'modifiers', /* 'grants', */ 'replaces', 'show_in_actions', 'has_active']): array
+    public static function getFeatureForm(array $includedInputs = ['name', 'level', 'snippet', 'description', 'modifiers', 'replaces', 'show_in_actions', 'has_active']): array
     {
         $inputs = [];
+        $abilities = Ability::toArray();
+        $saves = Ability::saveArray();
+        $skills = Skill::all()->pluck('name', 'id')->toArray();
+        $damageTypes = DamageType::all()->pluck('name', 'id')->toArray();
+        $conditions = [/* conditions */];
+        $tools = [/* tools */];
+        $weaponTypes = [/* weapon types */];
+        $weapons = [/* weapons */];
 
         foreach ($includedInputs as $input) {
             $inputs[] = match ($input) {
                 'name' => TextInput::make($input)
                     ->live()
-                    ->columnSpan(in_array('lvl', $includedInputs) ? 3 : 4),
-                'lvl' => TextInput::make($input)
+                    ->columnSpan(in_array('level', $includedInputs) ? 3 : 4),
+                'level' => TextInput::make($input)
                     ->label('Level Gained')
                     ->numeric()
                     ->minValue(0)
@@ -163,11 +171,12 @@ class FormService
                                 ->prefix('Grants:')
                                 ->live()
                                 ->options([
-                                    'res' => 'Resistance', 'imm' => 'Immunity', 'vul' => 'Vulnerability',
+                                    'vul' => 'Vulnerability', 'res' => 'Resistance', 'imm' => 'Immunity',
                                     'adv' => 'Advantage', 'dadv' => 'Disadvantage',
                                     'abi' => 'Ability', 'save' => 'Saving Throw',
                                     'skill' => 'Skill',
                                     'prof' => 'Proficiency',
+                                    // 'init' => 'Initiative',
                                     // 'ac' => 'Armor Class',
                                     'atk' => 'Attack Roll',
                                     'dmg' => 'Damage',
@@ -177,7 +186,67 @@ class FormService
                                     'ign' => 'Ignore',
                                     'wm' => 'Weapon Mastery',
                                 ])
-                                ->searchable(),
+                                ->searchable()
+                                ->columnSpan(fn (?string $state): int => $state != null ? 1 : 3),
+                            Select::make('on_type')
+                                ->prefix('On Type:')
+                                ->live()
+                                ->options(fn (Get $get): array => match ($get('grant')) {
+                                    default => [],
+                                    'imm' => ['dmg' => 'Damage Type', 'cond' => 'Condition'],
+                                    'adv', 'dadv' => [
+                                        'fx' => 'Effect',
+                                        'cond' => 'Condition',
+                                        'abi' => 'Ability Check',
+                                        'skill' => 'Skill',
+                                        'save' => 'Saving Throw',
+                                        'init' => 'Initiative',
+                                        'atk' => 'Attack Roll',
+                                    ],
+                                    'prof' => [
+                                        'Skills' => $skills,
+                                        'Tools' => $tools,
+                                        'Saving Throws' => $saves,
+                                        'Weapon Types' => $weaponTypes,
+                                        'Weapons' => $weapons,
+                                    ]
+                                })
+                                ->searchable()
+                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['imm', 'adv', 'dadv', 'prof']))
+                                ->columnSpan(fn (Get $get, ?string $state): int => in_array($get('grant'), ['imm', 'prof']) || (in_array($get('grant'), ['adv', 'dadv']) && $state != 'init') ? 1 : 2),
+                            Select::make('on')
+                                ->prefix('On:')
+                                ->options(fn (Get $get): array => match ($get('grant')) {
+                                    default => [],
+                                    'res', 'vul' => $damageTypes,
+                                    'imm' => $get('type') == 'dmg' ? $damageTypes : ($get('type') == 'cond' ? $conditions : []),
+                                    'adv', 'dadv' => match ($get('on_type')) {
+                                        default => [],
+                                        'fx' => [],
+                                        'cond' => [],
+                                        'abi' => [],
+                                        'skill' => [],
+                                        'save' => [],
+                                        'atk' => [],
+                                    },
+                                    'abi', 'save', 'skill' => ['Abilities' => $abilities] + ($get('grant') != 'save' ? ['Skills' => $skills] : [])
+                                })
+                                ->searchable()
+                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['res', 'vul', 'imm', 'abi', 'save', 'skill']) || (in_array($get('grant'), ['adv', 'dadv']) && $get('on_type') != 'init'))
+                                ->columnSpan(fn (Get $get): int => in_array($get('grant'), ['imm', 'abi', 'save', 'skill']) || (in_array($get('grant'), ['adv', 'dadv']) && $get('on_type') != 'init') ? 1 : 2),
+                            TextInput::make('modifier')
+                                ->prefix('Modifier:')
+                                ->numeric()
+                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['abi', 'save', 'skill'])),
+                            Select::make('type')
+                                ->prefix('Type:')
+                                ->options([
+                                    'half' => 'Half-proficiency',
+                                    'full' => 'Proficiency',
+                                    'expt' => 'Expertise',
+                                ])
+                                ->native(false)
+                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['prof']) && ! in_array($get('on_type'), ['strength' => 'Strength'])),
                             // Select::make('on')
                             //     ->prefix('On:')
                             //     ->options(fn (Get $get): array => match ($get('grant')) {
@@ -222,29 +291,11 @@ class FormService
                             //     })
                             //     ->searchable()
                             //     ->columnSpan(fn (Get $get): int => in_array($get('grant'), ['res', 'imm', 'vul', 'wm']) ? 2 : 1),
-                            // TextInput::make('modifier')
-                            //     ->prefix('Modifier:'),
                         ])
                             ->columns(3),
-                        Checkbox::make('replace'),
                     ])
                     ->addActionLabel('Add modifier')
                     ->columnSpanFull(),
-                // 'grants' => Select::make($input)
-                //     ->hiddenLabel()
-                //     ->prefix('Grants:')
-                //     ->options([
-                //         'Resistance',
-                //         'Immunity',
-                //         'Vulnerability',
-                //         'Bonus',
-                //         'Advantage',
-                //         'Disadvantage',
-                //         'Sense',
-                //         'Proficiency',
-                //         'Language',
-                //     ])
-                //     ->searchable(),
                 'replaces' => Checkbox::make($input),
                 'show_in_actions' => Checkbox::make($input),
                 'has_active' => Checkbox::make($input),
