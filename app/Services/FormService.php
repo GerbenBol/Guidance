@@ -156,6 +156,7 @@ class FormService
                     ->columnSpan(in_array('level', $includedInputs) ? 3 : 4),
                 'level' => TextInput::make($input)
                     ->label('Level Gained')
+                    ->default(1)
                     ->numeric()
                     ->minValue(0)
                     ->maxValue(20)
@@ -213,7 +214,7 @@ class FormService
                                 })
                                 ->searchable()
                                 ->visible(fn (Get $get): bool => in_array($get('grant'), ['imm', 'adv', 'dadv', 'prof']))
-                                ->columnSpan(fn (Get $get, ?string $state): int => in_array($get('grant'), ['imm', 'prof']) || (in_array($get('grant'), ['adv', 'dadv']) && $state != 'init') ? 1 : 2),
+                                ->columnSpan(fn (Get $get, ?string $state): int => in_array($get('grant'), ['imm']) || (in_array($get('grant'), ['adv', 'dadv']) && $state != 'init') || ($get('grant') == 'prof' && in_array($state, array_keys(array_merge($skills, $saves)))) ? 1 : 2),
                             Select::make('on')
                                 ->prefix('On:')
                                 ->options(fn (Get $get): array => match ($get('grant')) {
@@ -234,19 +235,36 @@ class FormService
                                 ->searchable()
                                 ->visible(fn (Get $get): bool => in_array($get('grant'), ['res', 'vul', 'imm', 'abi', 'save', 'skill']) || (in_array($get('grant'), ['adv', 'dadv']) && $get('on_type') != 'init'))
                                 ->columnSpan(fn (Get $get): int => in_array($get('grant'), ['imm', 'abi', 'save', 'skill']) || (in_array($get('grant'), ['adv', 'dadv']) && $get('on_type') != 'init') ? 1 : 2),
+                            Select::make('type')
+                                ->prefix('Type:')
+                                ->live()
+                                ->options(fn (Get $get): array => match ($get('grant')) {
+                                    'prof' => [
+                                        'half' => 'Half-proficiency',
+                                        'full' => 'Proficiency',
+                                        'expt' => 'Expertise',
+                                    ],
+                                    'atk' => [
+                                        'new' => 'New',
+                                        'ranged' => 'Existing (Ranged)',
+                                        'melee' => 'Existing (Melee)',
+                                    ]
+                                })
+                                ->native(false)
+                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['atk']) || (in_array($get('grant'), ['prof']) && in_array($get('on_type'), array_keys(array_merge($skills, $saves))))),
                             TextInput::make('modifier')
                                 ->prefix('Modifier:')
                                 ->numeric()
                                 ->visible(fn (Get $get): bool => in_array($get('grant'), ['abi', 'save', 'skill'])),
-                            Select::make('type')
-                                ->prefix('Type:')
-                                ->options([
-                                    'half' => 'Half-proficiency',
-                                    'full' => 'Proficiency',
-                                    'expt' => 'Expertise',
-                                ])
-                                ->native(false)
-                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['prof']) && ! in_array($get('on_type'), ['strength' => 'Strength'])),
+                            Select::make('ability')
+                                ->prefix('Ability:')
+                                ->options(Ability::toArray())
+                                ->searchable()
+                                ->visible(fn (Get $get): bool => $get('grant') == 'atk'),
+                            TextInput::make('range')
+                                ->prefix(fn (Get $get): string => $get('type') == 'ranged' ? 'Range' : 'Reach')
+                                ->numeric()
+                                ->visible(fn (Get $get): bool => in_array($get('type'), ['ranged', 'melee'])),
                             // Select::make('on')
                             //     ->prefix('On:')
                             //     ->options(fn (Get $get): array => match ($get('grant')) {
@@ -305,3 +323,21 @@ class FormService
         return $inputs;
     }
 }
+
+/**
+ * ✅ resistance | vulnerability => on (select) [damage types]
+ * ✅ immunity => type (select) [damage types/conditions] => on (select) [damage types | conditions]
+ * ✅ advantage | disadvantage => on type (select) [effects (magic sleep) & conditions & ability checks & skills & saves & initiative & attacks] => {! initiative} on (select)
+ * ✅ ability | save | skill => on (select) [abilities/skills] => modifier (numeric textinput)
+ * ✅ proficiency => on type (select) [skills & tools & saves & weapon types & weapon] => {! tools & ! weapon types & ! weapon} type (select) [half/full/exp.]
+ * ❌ attack roll => type (select) [existing (ranged/melee)/new] => ability (select) => {ranged} range/{melee} reach (numeric textinput) => proficient (select) [proficient/obtainable/no]
+ * ❌ damage => type (select) [existing (ranged/melee)/new] => damage type (select) [damage types] => amount (numeric textinput) => die type (select) [dice]
+ * ❌ sense => type (select) [darkvision/blindsight/truesight/tremorsense] => range (numeric textinput) {+ ft}
+ * ❌ language => language (select) [languages] => type (select) [read/speak/write] {multiple}
+ * ❌ speed => type (select) [walk/climb/fly/burrow/swim] => modifier (numeric textinput) {+ ft}
+ * ❌ ignore => ??
+ * ❌ weapon mastery => on (select) [masteries]
+ * ❌ resource (ki/sorcery/focus etc)
+
+ * ❌ armor class, initiative? or bonus?
+ */

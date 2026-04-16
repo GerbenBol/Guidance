@@ -153,7 +153,7 @@ class ClassForm
                                             ->schema([
                                                 TextInput::make('subclass_name')
                                                     ->label('Feature Name')
-                                                    ->afterLabel(FormService::makeHintIcon('Example: Arcane Tradition or Bard College')),
+                                                    ->afterLabel(FormService::makeHintIcon('Examples: Arcane Tradition or Bard College')),
                                                 Select::make('subclass_start_lvl')
                                                     ->label('First Level of Subclass')
                                                     ->options(function (): array {
@@ -177,7 +177,7 @@ class ClassForm
                                             ->reorderable(false)
                                             ->collapsible()
                                             ->addActionLabel('Add feature')
-                                            ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.($state['level'] ? '(Level '.$state['level'].' feature)' : '')))
+                                            ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.($state['level'] != null ? '(Level '.$state['level'].' feature)' : '')))
                                             ->columnSpanFull(),
                                     ])
                                     ->columns(2),
