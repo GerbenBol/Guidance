@@ -20,7 +20,15 @@ class CharacterResource extends Resource
 {
     protected static ?string $model = Character::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserCircle;
+
+    protected static string|BackedEnum|null $activeNavigationIcon = Heroicon::UserCircle;
+
+    protected static ?string $navigationLabel = 'Characters';
+
+    protected static ?string $pluralModelLabel = 'Characters';
+
+    protected static ?string $modelLabel = 'Character';
 
     public static function form(Schema $schema): Schema
     {
@@ -35,13 +43,6 @@ class CharacterResource extends Resource
     public static function table(Table $table): Table
     {
         return CharactersTable::configure($table);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
