@@ -2,6 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\Users\UserResource;
+use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -20,6 +23,8 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -41,6 +46,12 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make(env('ARTICLES_GROUP', 'Articles'))
                     ->icon(Heroicon::Beaker),
+            ])
+            ->userMenuItems([
+                'profile' => fn (Action $action) => $action
+                    ->icon(null)
+                    ->label(new HtmlString('<div style="display:flex;"><img src="'.Filament::getUserAvatarUrl(Auth::user()).'" style="height:20px;margin-right:10px;" />'.Auth::user()->name.'</div>'))
+                    ->url(UserResource::getUrl('edit', [Auth::user()->id])),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
