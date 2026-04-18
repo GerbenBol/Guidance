@@ -256,15 +256,6 @@ class FormService
                                 ->prefix('Modifier:')
                                 ->numeric()
                                 ->visible(fn (Get $get): bool => in_array($get('grant'), ['abi', 'save', 'skill'])),
-                            Select::make('ability')
-                                ->prefix('Ability:')
-                                ->options(Ability::toArray())
-                                ->searchable()
-                                ->visible(fn (Get $get): bool => $get('grant') == 'atk'),
-                            TextInput::make('range')
-                                ->prefix(fn (Get $get): string => $get('type') == 'ranged' ? 'Range' : 'Reach')
-                                ->numeric()
-                                ->visible(fn (Get $get): bool => in_array($get('type'), ['ranged', 'melee'])),
                             // Select::make('on')
                             //     ->prefix('On:')
                             //     ->options(fn (Get $get): array => match ($get('grant')) {
@@ -330,7 +321,7 @@ class FormService
  * ✅ advantage | disadvantage => on type (select) [effects (magic sleep) & conditions & ability checks & skills & saves & initiative & attacks] => {! initiative} on (select)
  * ✅ ability | save | skill => on (select) [abilities/skills] => modifier (numeric textinput)
  * ✅ proficiency => on type (select) [skills & tools & saves & weapon types & weapon] => {! tools & ! weapon types & ! weapon} type (select) [half/full/exp.]
- * ❌ attack roll => type (select) [existing (ranged/melee)/new] => ability (select) => {ranged} range/{melee} reach (numeric textinput) => proficient (select) [proficient/obtainable/no]
+ * ❌ attack roll => type (select) [existing (ranged/melee)/new] => ability (select)
  * ❌ damage => type (select) [existing (ranged/melee)/new] => damage type (select) [damage types] => amount (numeric textinput) => die type (select) [dice]
  * ❌ sense => type (select) [darkvision/blindsight/truesight/tremorsense] => range (numeric textinput) {+ ft}
  * ❌ language => language (select) [languages] => type (select) [read/speak/write] {multiple}
