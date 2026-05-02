@@ -326,4 +326,7 @@ class FormService
  * ❌ resource (ki/sorcery/focus etc)
 
  * ❌ armor class, initiative? or bonus?
+ * 
+ * stop doing this ^, and start working on stuff that they can actually add when it goes live
+ * also put the site live
  */
