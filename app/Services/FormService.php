@@ -244,14 +244,9 @@ class FormService
                                         'full' => 'Proficiency',
                                         'expt' => 'Expertise',
                                     ],
-                                    'atk' => [
-                                        'new' => 'New',
-                                        'ranged' => 'Existing (Ranged)',
-                                        'melee' => 'Existing (Melee)',
-                                    ]
                                 })
                                 ->native(false)
-                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['atk']) || (in_array($get('grant'), ['prof']) && in_array($get('on_type'), array_keys(array_merge($skills, $saves))))),
+                                ->visible(fn (Get $get): bool => in_array($get('grant'), ['prof']) && in_array($get('on_type'), array_keys(array_merge($skills, $saves)))),
                             TextInput::make('modifier')
                                 ->prefix('Modifier:')
                                 ->numeric()

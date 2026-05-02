@@ -97,6 +97,7 @@ class SpellForm
                                                         ->columnSpan(fn (Get $get): int => in_array($get('range_type'), ['feet', 'mile', 'inch']) ? 3 : 4)
                                                         ->live(),
                                                 ])
+                                                    ->label('Range')
                                                     ->columns(4),
                                                 FusedGroup::make([
                                                     TextInput::make('area')
@@ -112,6 +113,7 @@ class SpellForm
                                                         ->native(false)
                                                         ->columnSpan(3),
                                                 ])
+                                                    ->label('Area')
                                                     ->columns(4),
                                             ])
                                             ->columns(1),
@@ -162,7 +164,7 @@ class SpellForm
                                             ->schema([
                                                 Select::make('type')
                                                     ->label('Type')
-                                                    ->options(['hp' => 'Health', 'temp' => 'Temporary HP'] + DamageType::all()->pluck('name', 'id')->toArray())
+                                                    ->options(['hp' => 'Health', 'temp' => 'Temporary HP'] + ['Damage' => DamageType::all()->pluck('name', 'id')->toArray()])
                                                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                                                     ->searchable()
                                                     ->native(false),
@@ -199,7 +201,7 @@ class SpellForm
                                                     ->native(false),
                                                 Select::make('type')
                                                     ->label('Type')
-                                                    ->options(['hp' => 'Health', 'temp' => 'Temporary HP'] + DamageType::all()->pluck('name', 'id')->toArray())
+                                                    ->options(['hp' => 'Health', 'temp' => 'Temporary HP'] + ['Damage' => DamageType::all()->pluck('name', 'id')->toArray()])
                                                     ->searchable()
                                                     ->native(false),
                                                 TextInput::make('amount')

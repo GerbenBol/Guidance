@@ -40,8 +40,12 @@ class RaceForm
                             ->schema([
                                 Repeater::make('features')
                                     ->hiddenLabel()
-                                    ->schema([])
-                                    ->addActionLabel('Add feature'),
+                                    ->schema(FormService::getFeatureForm())
+                                    ->columns(4)
+                                    ->reorderable()
+                                    ->collapsible()
+                                    ->addActionLabel('Add feature')
+                                    ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.($state['level'] != null ? '(Level '.$state['level'].' feature)' : ''))),
                             ]),
                     ]),
             ])
