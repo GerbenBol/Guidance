@@ -25,11 +25,12 @@ class PathGeneratorService extends DefaultPathGenerator
     protected function getBasePath(Media $media): string
     {
         $prefix = config('media-library.prefix', '');
+        $model = md5($media->model_type.$media->model_id);
 
         if ($prefix !== '') {
-            return $prefix.'/'.$media->model_id;
+            return $prefix.'/'.$model;
         }
 
-        return $media->model_id;
+        return $model;
     }
 }
