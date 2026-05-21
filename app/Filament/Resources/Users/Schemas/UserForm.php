@@ -30,7 +30,7 @@ class UserForm
                                     ->email()
                                     ->prefixIcon(Heroicon::Envelope, true),
                             ])
-                            ->columnSpan(3)
+                            ->columnSpan(3),
                         // TextInput::make('password')
                         //     ->password()
                         //     ->prefixIcon(Heroicon::Key, true)
