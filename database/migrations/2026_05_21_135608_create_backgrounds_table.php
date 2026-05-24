@@ -17,8 +17,9 @@ return new class extends Migration
             $table->string('system_version')->nullable();
             // $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
-            $table->json('skill_profs')->nullable();
+            $table->json('profs')->nullable();
             $table->json('feats')->nullable();
+            $table->json('equipment')->nullable();
             $table->bigInteger('user_id')->unsigned();
 
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();

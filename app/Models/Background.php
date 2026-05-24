@@ -14,14 +14,16 @@ class Background extends Model
         'system_version',
         // 'short_desc',
         'description',
-        'skill_profs',
+        'profs',
         'feats',
+        'equipment',
         'user_id',
     ];
 
     protected $casts = [
         'skill_profs' => 'array',
         'feats' => 'array',
+        'equipment' => 'array',
     ];
 
     public function creator(): BelongsTo
