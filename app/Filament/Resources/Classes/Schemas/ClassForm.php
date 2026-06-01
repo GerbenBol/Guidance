@@ -113,6 +113,7 @@ class ClassForm
                                                 ->prefix('Choose:')
                                                 ->numeric(),
                                             Select::make('skill_prof')
+                                                ->prefix('From:')
                                                 ->options(Skill::all()->pluck('name', 'id'))
                                                 ->multiple()
                                                 ->columnSpan(4),
@@ -222,11 +223,22 @@ class ClassForm
                                         Section::make('Spell Slot Table')
                                             ->schema(function (): array {
                                                 $rows = [
-                                                    TextInput::make('cantrips')
-                                                        ->hiddenLabel()
-                                                        ->prefix('Cantrips: ', true)
-                                                        ->numeric()
-                                                        ->columnSpanFull(),
+                                                    Grid::make(2)
+                                                        ->schema([
+                                                            TextInput::make('cantrips')
+                                                                ->numeric(),
+                                                            Select::make('cantrip_upgrades')
+                                                                ->multiple()
+                                                                ->options(function (): array {
+                                                                    $ret = [];
+
+                                                                    for ($i = 1; $i <= 20; $i++) {
+                                                                        $ret[$i] = 'Level '.$i;
+                                                                    }
+
+                                                                    return $ret;
+                                                                }),
+                                                        ]),
                                                     Hidden::make('spellslots'),
                                                 ];
 
@@ -292,7 +304,7 @@ class ClassForm
                                     ])
                                     ->columns(2),
                             ])
-                            ->activeTab(2)
+                            // ->activeTab(2)
                             ->columnSpanFull(),
                     ];
                 }

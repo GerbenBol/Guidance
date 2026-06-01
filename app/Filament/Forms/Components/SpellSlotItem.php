@@ -10,7 +10,7 @@ class SpellSlotItem extends Field
     protected string $view = 'filament.forms.components.spell-slot-item';
 
     #[ExposedLivewireMethod]
-    public function stateUp($state): array
+    public function stateUp(array $state): array
     {
         $this->state(++$state['amount']);
         $this->callAfterStateUpdated();
@@ -19,7 +19,7 @@ class SpellSlotItem extends Field
     }
 
     #[ExposedLivewireMethod]
-    public function stateDown($state): array
+    public function stateDown(array $state): array
     {
         $this->state(--$state['amount']);
         $this->callAfterStateUpdated();

@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Backgrounds\Schemas;
 
+use App\Models\Skill;
 use App\Services\FormService;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -40,34 +40,6 @@ class BackgroundForm
                             ]),
                         Tab::make('Details')
                             ->schema([
-                                // Repeater::make('profs')
-                                //     ->label('Proficiencies')
-                                //     ->schema([
-                                //         Grid::make(4)
-                                //             ->schema([
-                                //                 Radio::make('granted')
-                                //                     ->hiddenLabel()
-                                //                     ->inline()
-                                //                     ->live()
-                                //                     ->default(true)
-                                //                     ->boolean('Granted', 'Choice'),
-                                //                 Select::make('type')
-                                //                     ->hiddenLabel()
-                                //                     ->options([
-                                //                         'skill' => 'Skill',
-                                //                         'tool' => 'Tool',
-                                //                         'lang' => 'Language',
-                                //                     ])
-                                //                     ->native(false),
-                                //                 Select::make('options')
-                                //                     ->hiddenLabel()
-                                //                     ->prefix(fn (Get $get): string => $get('granted') ? 'Option' : 'Options')
-                                //                     ->multiple(fn (Get $get): bool => !$get('granted') ?? false)
-                                //                     ->searchable()
-                                //                     ->options([])
-                                //                     ->columnSpan(2)
-                                //             ]),
-                                //     ]),
                                 Repeater::make('profs')
                                     ->label('Proficiencies')
                                     ->schema([
@@ -76,41 +48,108 @@ class BackgroundForm
                                                 ->hiddenLabel()
                                                 ->live()
                                                 ->native(false)
-                                                ->default(1)
-                                                ->options(['Choice', 'Granted'])
-                                                ->columnSpan(3),
+                                                ->default(0)
+                                                ->options(['Granted', 'Choose One', 'Choose Multiple']),
                                             Select::make('type')
                                                 ->hiddenLabel()
+                                                ->prefix('Type')
                                                 ->options([
                                                     'skill' => 'Skill',
                                                     'tool' => 'Tool',
                                                     'lang' => 'Language',
                                                 ])
-                                                ->native(false)
-                                                ->columnSpan(3),
+                                                ->native(false),
                                             Select::make('options')
                                                 ->hiddenLabel()
-                                                // ->prefix(fn (Get $get): string => $get('granted') ? 'Option' : 'Options')
-                                                // ->multiple(fn (Get $get): bool => !$get('granted') ?? false)
+                                                ->prefix(fn (Get $get): string => ! $get('granted') ? 'Option' : 'Options')
+                                                ->multiple(fn (Get $get): bool => $get('granted') == 2 ?? false)
                                                 ->searchable()
-                                                ->options([])
-                                                ->columnSpan(6),
-                                            // Select::make('granted')
+                                                ->options(fn (Get $get): array => match ($get('type')) {
+                                                    'skill' => Skill::all()->pluck('name', 'id')->toArray(),
+                                                    'tool' => [],
+                                                    'lang' => [],
+                                                    default => [],
+                                                })
+                                                ->columnSpan(2),
                                         ])
-                                            ->columns(12),
+                                            ->columns(4),
                                     ]),
                                 Repeater::make('feats')
-                                    ->schema([]),
+                                    ->schema([
+                                        FusedGroup::make([
+                                            Select::make('granted')
+                                                ->live()
+                                                ->native(false)
+                                                ->default(0)
+                                                ->options(['Granted', 'Choose One']),
+                                            Select::make('options')
+                                                // ->relationship('feats', 'name')
+                                                ->prefix(fn (Get $get): string => ! $get('granted') ? 'Option' : 'Options')
+                                                ->searchable()
+                                                ->options([]), // feats
+                                        ])
+                                            ->columns(2),
+                                    ]),
                                 Repeater::make('equipment')
                                     ->schema([
                                         Repeater::make('items')
                                             ->hiddenLabel()
-                                            ->schema([]),
+                                            ->schema([
+                                                Grid::make(4)
+                                                    ->schema([
+                                                        Select::make('type')
+                                                            ->native(false)
+                                                            ->default('item')
+                                                            ->live()
+                                                            ->options([
+                                                                'gp' => 'Gold',
+                                                                'item' => 'Item',
+                                                                'item-choice' => 'Item Choice',
+                                                                'pack' => 'Pack',
+                                                            ])
+                                                            ->columnSpan(fn ($state): int => $state == 'pack' ? 4 : 2),
+                                                        TextInput::make('amount')
+                                                            ->numeric()
+                                                            ->suffix(fn (Get $get): string => $get('type') == 'gp' ? 'GP' : '')
+                                                            ->visible(fn (Get $get): bool => $get('type') != 'pack')
+                                                            ->columnSpan(fn (Get $get): int => $get('type') == 'gp' ? 2 : 1),
+                                                        Select::make('item')
+                                                            // ->relationship('items', 'name')
+                                                            ->searchable()
+                                                            ->createOptionModalHeading('New Item')
+                                                            ->createOptionForm([
+                                                                TextInput::make('name'),
+                                                            ])
+                                                            ->visible(fn (Get $get): bool => $get('type') == 'item'),
+                                                        Select::make('items')
+                                                            // ->relationship('items', 'name')
+                                                            ->multiple()
+                                                            ->createOptionModalHeading('New Item')
+                                                            ->createOptionForm([
+                                                                TextInput::make('name'),
+                                                            ])
+                                                            ->visible(fn (Get $get): bool => $get('type') == 'item-choice'),
+                                                    ]),
+                                                Repeater::make('pack')
+                                                    ->label('Pack Items')
+                                                    ->visible(fn (Get $get): bool => $get('type') == 'pack')
+                                                    ->schema([
+                                                        TextInput::make('amount')
+                                                            ->numeric(),
+                                                        Select::make('item')
+                                                            // ->relationship('items', 'name')
+                                                            ->searchable()
+                                                            ->createOptionModalHeading('New Item')
+                                                            ->createOptionForm([]),
+                                                    ])
+                                                    ->addActionLabel('Add to pack items')
+                                                    ->columns(2),
+                                            ]),
                                     ])
                                     ->itemLabel(fn (int $index): string => 'Option '.chr(65 + $index)),
                             ]),
                     ])
-                    ->activeTab(2),
+                    ->activeTab(2), // temp
             ])
             ->columns(1);
     }

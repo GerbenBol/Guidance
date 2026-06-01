@@ -40,9 +40,11 @@
             }">
             <x-filament::button x-on:click="down" size="xs" icon="heroicon-m-minus" style="margin-right:5px;"></x-filament::button>
 
+            <x-filament::button disabled size="xs">
             <template x-if="slots" x-data="{ state: $wire.$entangle('{{ $getStatePath() }}') }">
                 <p x-text="`${slots.amount}`"></p>
             </template>
+            </x-filament::button>
 
             <x-filament::button x-on:click="up" size="xs" icon="heroicon-m-plus" style="margin-left:5px;"></x-filament::button>
         </div>

@@ -14,7 +14,7 @@ class Race extends Model
         'short_desc',
         'description',
         'features',
-        'user',
+        'user_id',
     ];
 
     protected $casts = [
