@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Background extends Model
 {
+    use CanBePrivate;
+
     protected $table = 'backgrounds';
 
     protected $fillable = [

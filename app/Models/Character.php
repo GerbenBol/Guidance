@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Character extends Model
 {
+    use CanBePrivate;
+
     protected $table = 'characters';
 
     protected $fillable = [

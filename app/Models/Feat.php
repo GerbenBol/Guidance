@@ -6,24 +6,24 @@ use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PlayerClass extends Model
+class Feat extends Model
 {
     use CanBePrivate;
 
-    protected $table = 'classes';
+    protected $table = 'feats';
 
     protected $fillable = [
         'name',
-        'short_desc',
+        'system_version',
         'description',
+        'short_desc',
         'features',
-        'spell_info',
-        'user_id',
+        'requirements',
     ];
 
     protected $casts = [
         'features' => 'array',
-        'spell_info' => 'object',
+        'requirements' => 'array',
     ];
 
     public function creator(): BelongsTo
