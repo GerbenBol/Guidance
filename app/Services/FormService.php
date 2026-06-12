@@ -132,6 +132,8 @@ class FormService
             ]);
     }
 
+    public static function getFeatureRepeater() {}
+
     /**
      * Get the array schema for a feature form.
      *
