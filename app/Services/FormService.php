@@ -132,7 +132,22 @@ class FormService
             ]);
     }
 
-    public static function getFeatureRepeater() {}
+    /**
+     * Get the features Repeater component.
+     *
+     * @param  array  $includedInputs  Optional. An array which includes all names of inputs that should be included. Defaults to all.
+     */
+    public static function getFeatureRepeater(array $includedInputs = ['name', 'level', 'snippet', 'description', 'modifiers', 'replaces', 'show_in_actions', 'has_active']): Repeater
+    {
+        return Repeater::make('features')
+            ->hiddenLabel()
+            ->schema(self::getFeatureForm($includedInputs))
+            ->columns(4)
+            ->reorderable()
+            ->collapsible()
+            ->addActionLabel('Add feature')
+            ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.(in_array('level', $includedInputs) && $state['level'] != null ? '(Level '.$state['level'].' feature)' : '')));
+    }
 
     /**
      * Get the array schema for a feature form.

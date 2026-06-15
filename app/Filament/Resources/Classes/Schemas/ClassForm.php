@@ -12,7 +12,6 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -171,15 +170,7 @@ class ClassForm
                                             ->collapsible()
                                             ->columns(2)
                                             ->secondary(),
-                                        Repeater::make('features')
-                                            ->hiddenLabel()
-                                            ->schema(FormService::getFeatureForm())
-                                            ->columns(4)
-                                            ->reorderable(false)
-                                            ->collapsible()
-                                            ->addActionLabel('Add feature')
-                                            ->itemLabel(fn (array $state): string => trim(($state['name'] ?? '').' '.($state['level'] != null ? '(Level '.$state['level'].' feature)' : '')))
-                                            ->columnSpanFull(),
+                                        FormService::getFeatureRepeater(),
                                     ])
                                     ->columns(2),
                                 Tab::make('Spellcasting')

@@ -148,8 +148,7 @@ class BackgroundForm
                                     ])
                                     ->itemLabel(fn (int $index): string => 'Option '.chr(65 + $index)),
                             ]),
-                    ])
-                    ->activeTab(2), // temp
+                    ]),
             ])
             ->columns(1);
     }
