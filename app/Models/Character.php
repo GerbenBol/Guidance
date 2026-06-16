@@ -6,7 +6,6 @@ use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Character extends Model
@@ -53,12 +52,14 @@ class Character extends Model
         return $this->hasOne(Background::class, 'background_id');
     }
 
-    public function classes(): Collection {
+    public function classes(): Collection
+    {
         $classes = [];
-        
+
         foreach ($this->classes as $class) {
             $classes[] = $class->id;
         }
+
         return PlayerClass::find($classes);
     }
 }

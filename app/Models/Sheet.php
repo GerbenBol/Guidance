@@ -18,7 +18,8 @@ class Sheet extends Model
         'info' => 'array',
     ];
 
-    public function character(): BelongsTo {
+    public function character(): BelongsTo
+    {
         return $this->belongsTo(Character::class, 'character_id');
     }
 }

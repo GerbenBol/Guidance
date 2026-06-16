@@ -35,7 +35,7 @@ class CharacterForm
                                         ->inlineLabel()
                                         ->options(PlayerClass::getAllRecords('publicOrOwned'))
                                         ->searchable(),
-                                ])
+                                ]),
                         ]),
                     Step::make('Race')
                         ->schema([
