@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\CanBePrivate;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -16,16 +17,25 @@ class Character extends Model
 
     protected $fillable = [
         'name',
+        'system_version',
+        'classes',
         'race_id',
         'background_id',
         'race_options',
         'background_options',
         'player_id',
+        'inventory',
+        'settings',
+        'updated',
     ];
 
     protected $casts = [
+        'classes' => 'object',
         'race_options' => 'array',
         'background_options' => 'array',
+        'inventory' => 'array',
+        'settings' => 'array',
+        'updated' => 'boolean',
     ];
 
     public function player(): BelongsTo
@@ -33,23 +43,22 @@ class Character extends Model
         return $this->belongsTo(User::class, 'player_id');
     }
 
-    // public function race(): HasOne
-    // {
-    //     return $this->hasOne(Race::class, 'race_id');
-    // }
+    public function race(): HasOne
+    {
+        return $this->hasOne(Race::class, 'race_id');
+    }
 
-    // public function background(): HasOne
-    // {
-    //     return $this->hasOne(Background::class, 'background_id');
-    // }
+    public function background(): HasOne
+    {
+        return $this->hasOne(Background::class, 'background_id');
+    }
 
-    // public function classes(): HasManyThrough
-    // {
-    //     return $this->hasManyThrough(
-    //         PlayerClass::class,
-    //         CharacterHasClass::class,
-    //         'id',
-    //         'id'
-    //     );
-    // }
+    public function classes(): Collection {
+        $classes = [];
+        
+        foreach ($this->classes as $class) {
+            $classes[] = $class->id;
+        }
+        return PlayerClass::find($classes);
+    }
 }

@@ -6,6 +6,7 @@ use App\Filament\Resources\Characters\CharacterResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
+use Override;
 
 class EditCharacter extends EditRecord
 {

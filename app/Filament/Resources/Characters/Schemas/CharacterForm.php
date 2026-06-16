@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Characters\Schemas;
 
+use App\Models\PlayerClass;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Wizard;
@@ -25,23 +27,29 @@ class CharacterForm
                 Wizard::make([
                     Step::make('Classes')
                         ->schema([
-                            Select::make('class_id')
-                                // ->relationship('classes', 'name')
-                                ->native(),
+                            Repeater::make('classes')
+                                ->hiddenLabel()
+                                ->schema([
+                                    Select::make('id')
+                                        ->label('Class')
+                                        ->inlineLabel()
+                                        ->options(PlayerClass::getAllRecords('publicOrOwned'))
+                                        ->searchable(),
+                                ])
                         ]),
                     Step::make('Race')
                         ->schema([
-                            Select::make('race_id')
-                                ->options([])
-                                // ->relationship('race', 'name')
-                                ->native(false),
+                            // Select::make('id')
+                            //     ->options([])
+                            //     ->relationship('race', 'name')
+                            //     ->searchable(),
                         ]),
                     Step::make('Background')
                         ->schema([
-                            Select::make('background_id')
-                                ->options([])
-                                // ->relationship('background', 'name')
-                                ->native(false),
+                            // Select::make('id')
+                            //     ->options([])
+                            //     ->relationship('background', 'name')
+                            //     ->searchable(),
                         ]),
                     Step::make('Abilities')
                         ->schema([]),
