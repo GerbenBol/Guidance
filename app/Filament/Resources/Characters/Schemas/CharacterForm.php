@@ -33,9 +33,16 @@ class CharacterForm
                                     Select::make('id')
                                         ->label('Class')
                                         ->inlineLabel()
+                                        ->live()
                                         ->options(PlayerClass::getAllRecords('publicOrOwned'))
-                                        ->searchable(),
-                                ]),
+                                        ->searchable()
+                                        ->columnSpan(8),
+                                    Select::make('level')
+                                        ->label('Levels')
+                                        ->inlineLabel()
+                                        ->options([])
+                                ])
+                                ->columns(12),
                         ]),
                     Step::make('Race')
                         ->schema([
@@ -52,6 +59,8 @@ class CharacterForm
                             //     ->searchable(),
                         ]),
                     Step::make('Abilities')
+                        ->schema([]),
+                    Step::make('Equipment')
                         ->schema([]),
                 ])
                     ->columnSpanFull()
