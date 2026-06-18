@@ -29,7 +29,7 @@ class Character extends Model
     ];
 
     protected $casts = [
-        'classes' => 'object',
+        'classes' => 'array',
         'race_options' => 'array',
         'background_options' => 'array',
         'inventory' => 'array',
