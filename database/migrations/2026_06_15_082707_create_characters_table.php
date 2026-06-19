@@ -15,10 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('system_version')->nullable();
+            $table->json('classes')->nullable();
             $table->bigInteger('race_id')->nullable()->unsigned();
             $table->bigInteger('background_id')->nullable()->unsigned();
             $table->json('race_options')->nullable();
             $table->json('background_options')->nullable();
+            $table->json('inventory')->nullable();
+            $table->json('settings')->nullable();
+            $table->boolean('updated')->default(true);
             $table->bigInteger('player_id')->unsigned();
 
             $table->foreign('player_id')->references('id')->on('users')->onDelete('cascade');

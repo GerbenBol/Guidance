@@ -145,8 +145,10 @@ class ClassForm
 
                                                         return $lvls;
                                                     })
-                                                    ->multiple(),
+                                                    ->multiple()
+                                                    ->reorderable(),
                                             ])
+                                            ->default([4, 8, 12, 16])
                                             ->collapsible()
                                             ->secondary(),
                                         Section::make('Subclass')
@@ -170,7 +172,8 @@ class ClassForm
                                             ->collapsible()
                                             ->columns(2)
                                             ->secondary(),
-                                        FormService::getFeatureRepeater(),
+                                        FormService::getFeatureRepeater()
+                                            ->columnSpanFull(),
                                     ])
                                     ->columns(2),
                                 Tab::make('Spellcasting')
@@ -289,13 +292,12 @@ class ClassForm
 
                                                 return $rows;
                                             })
-                                            ->collapsible()
-                                            // ->collapsed()
+                                            // ->collapsible()
+                                            ->collapsed()
                                             ->secondary(),
                                     ])
                                     ->columns(2),
                             ])
-                            // ->activeTab(2)
                             ->columnSpanFull(),
                     ];
                 }
