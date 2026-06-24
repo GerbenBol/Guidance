@@ -57,7 +57,7 @@ class Character extends Model
         $classes = [];
 
         foreach ($this->classes as $class) {
-            $classes[] = $class->id;
+            $classes[] = $class['id'];
         }
 
         return PlayerClass::find($classes);

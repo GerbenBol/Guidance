@@ -24,4 +24,33 @@ class EditCharacter extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['classes'] = [];
+
+        foreach ($this->data['classes'] as $class) {
+            $data['classes'][] = [
+                'id' => $class['id'],
+                'level' => $class['level'],
+                'hp' => $class['hp'],
+                'used_dice' => $class['used_dice'],
+                'modifiers' => $class['modifiers'],
+            ];
+        }
+
+        return parent::mutateFormDataBeforeSave($data);
+    }
+
+    protected function getListeners(): array
+    {
+        return [
+            'choiceUpdated' => 'onChoiceUpdate',
+        ];
+    }
+
+    public function onChoiceUpdate(string $name, string $class, mixed $value): void
+    {
+        $this->data['classes'][$class]['modifiers'][$name] = $value;
+    }
 }

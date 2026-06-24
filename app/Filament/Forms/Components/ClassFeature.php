@@ -11,9 +11,18 @@ class ClassFeature extends Field
 
     public array $feature = [];
 
+    public array $modifiers = [];
+
     public function referesToFeature(array $feature): static
     {
         $this->feature = $feature;
+
+        return $this;
+    }
+
+    public function allModifiers(array $modifiers): static
+    {
+        $this->modifiers = $modifiers;
 
         return $this;
     }
@@ -22,5 +31,11 @@ class ClassFeature extends Field
     public function getFeature(): array
     {
         return $this->feature;
+    }
+
+    #[ExposedLivewireMethod]
+    public function getModifiers(): array
+    {
+        return $this->modifiers;
     }
 }

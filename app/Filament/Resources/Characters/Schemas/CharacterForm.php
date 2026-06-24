@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Characters\Schemas;
 
 use App\Filament\Forms\Components\ClassFeature;
+use App\Models\Character;
 use App\Models\PlayerClass;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
@@ -11,14 +12,12 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
-use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\HtmlString;
 
 class CharacterForm
 {
@@ -40,6 +39,8 @@ class CharacterForm
 
                     return [
                         Step::make('Classes')
+                            ->icon(Heroicon::OutlinedAcademicCap)
+                            ->completedIcon(Heroicon::AcademicCap)
                             ->schema([
                                 Repeater::make('classes')
                                     ->hiddenLabel()
@@ -84,23 +85,60 @@ class CharacterForm
                                                     // add hit dice to class
                                                 ]))
                                             ->columnSpan(2),
-                                        // save prof, skill prof
-                                        Text::make(new HtmlString('Saving Throw Proficiencies: <br>'.implode(', ', array_map(fn ($item) => ucfirst($item), $primaryClass->class_info->save_prof))))
-                                            ->tooltip($primaryClass->name)
-                                            ->columnSpan(3),
                                         Tabs::make()
                                             ->tabs([
                                                 Tab::make('Features')
-                                                    ->schema(function (array $state, Get $get): array {
-                                                        $schema = [];
+                                                    ->schema(function (Character $record, array $state, Get $get): array {
                                                         $class = PlayerClass::find($state['id']);
 
+                                                        if (self::isPrimaryClass($record, $class->id)) {
+                                                            $core = [
+                                                                'name' => $class->name.' Core Traits Primary Class',
+                                                                'description' => 'As a primary class the '.$class->name.' gains the following:<br>
+                                                                    - <em>Saving Throw Proficiencies: '.implode(', ', array_map(fn ($item) => ucfirst($item), $class->class_info->save_prof)).'</em><br>',
+                                                                'modifiers' => [],
+                                                            ];
+
+                                                            for ($i = 0; $i < $class->class_info->amount_of_skill_prof; $i++) {
+                                                                $core['modifiers'][] = [
+                                                                    'choice' => true,
+                                                                    'grant' => 'skill',
+                                                                    'on' => $class->class_info->skill_prof,
+                                                                ];
+                                                            }
+                                                        } else {
+                                                            $core = [
+                                                                'name' => $class->name.' Core Traits Multiclass',
+                                                                'description' => 'As a multiclass the '.$class->name.' gains the following:',
+                                                                'modifiers' => [],
+                                                            ];
+
+                                                            for ($i = 0; $i < $class->class_info->amount_of_skill_prof; $i++) {
+                                                                $core['modifiers'][] = [
+                                                                    'choice' => true,
+                                                                    'grant' => 'skill',
+                                                                    'on' => $class->class_info->skill_prof,
+                                                                ];
+                                                            }
+                                                        }
+                                                        // add tool profs, armor profs, gaming sets to core
+                                                        $core['level'] = 1;
+                                                        $features = ['1' => [$core]];
+                                                        $schema = [];
+                                                        // dd($core);
+
                                                         foreach ($class->features as $feature) {
-                                                            // dd($feature);
-                                                            $schema[] = ClassFeature::make($feature['name'])
-                                                                ->hiddenLabel()
-                                                                ->visible(fn (Get $get): bool => $feature['level'] <= $get('level'))
-                                                                ->referesToFeature($feature);
+                                                            $features[$feature['level']][] = $feature;
+                                                        }
+
+                                                        foreach ($features as $level) {
+                                                            foreach ($level as $feature) {
+                                                                $schema[] = ClassFeature::make($feature['name'])
+                                                                    ->hiddenLabel()
+                                                                    ->visible(fn (Get $get): bool => $feature['level'] <= $get('level'))
+                                                                    ->referesToFeature($feature)
+                                                                    ->allModifiers($state['modifiers']);
+                                                            }
                                                         }
 
                                                         return $schema;
@@ -121,6 +159,8 @@ class CharacterForm
                                     ->columns(12),
                             ]),
                         Step::make('Race')
+                            ->icon(Heroicon::OutlinedAcademicCap)
+                            ->completedIcon(Heroicon::AcademicCap)
                             ->schema([
                                 // Select::make('id')
                                 //     ->options([])
@@ -128,6 +168,8 @@ class CharacterForm
                                 //     ->searchable(),
                             ]),
                         Step::make('Background')
+                            ->icon(Heroicon::OutlinedAcademicCap)
+                            ->completedIcon(Heroicon::AcademicCap)
                             ->schema([
                                 // Select::make('id')
                                 //     ->options([])
@@ -135,13 +177,22 @@ class CharacterForm
                                 //     ->searchable(),
                             ]),
                         Step::make('Abilities')
+                            ->icon(Heroicon::OutlinedAcademicCap)
+                            ->completedIcon(Heroicon::AcademicCap)
                             ->schema([]),
                         Step::make('Equipment')
+                            ->icon(Heroicon::OutlinedAcademicCap)
+                            ->completedIcon(Heroicon::AcademicCap)
                             ->schema([]),
                     ];
                 })
                     ->columnSpanFull()
                     ->skippable(),
             ]);
+    }
+
+    private static function isPrimaryClass(Character $character, int|string $class): bool
+    {
+        return ($character->classes()[0]->id ?? 0) == $class;
     }
 }
