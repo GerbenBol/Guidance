@@ -32,9 +32,11 @@ class CharacterForm
                     ->columnSpanFull()
                     ->required(),
                 Wizard::make(function ($state): array {
-                    foreach ($state['classes'] as $class) {
-                        $primaryClass = PlayerClass::find($class['id']);
-                        break;
+                    if ($state['classes']) {
+                        foreach ($state['classes'] as $class) {
+                            $primaryClass = PlayerClass::find($class['id']);
+                            break;
+                        }
                     }
 
                     return [
@@ -103,7 +105,7 @@ class CharacterForm
                                                                 $core['modifiers'][] = [
                                                                     'choice' => true,
                                                                     'grant' => 'skill',
-                                                                    'on' => $class->class_info->skill_prof,
+                                                                    'options' => $class->class_info->skill_prof,
                                                                 ];
                                                             }
                                                         } else {
@@ -117,7 +119,7 @@ class CharacterForm
                                                                 $core['modifiers'][] = [
                                                                     'choice' => true,
                                                                     'grant' => 'skill',
-                                                                    'on' => $class->class_info->skill_prof,
+                                                                    'options' => $class->class_info->skill_prof,
                                                                 ];
                                                             }
                                                         }

@@ -45,7 +45,7 @@
                 @livewire('select-choice', [
                     'name' => $modifier['grant'].$id,
                     'options' => match ($modifier['grant']) {
-                        'skill' => App\Models\Skill::find($modifier['on'])->pluck('name', 'id')->toArray(),
+                        'skill' => App\Models\Skill::find($modifier['options'])->pluck('name', 'id')->toArray(),
                         default => ['Couldn\'t find corresponding records.'],
                     },
                     'class' => $classId,
