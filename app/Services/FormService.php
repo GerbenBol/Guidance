@@ -207,8 +207,8 @@ class FormService
                                 ->visible(fn (Get $get): bool => $get('grant') != null && ! $get('choice'))
                                 ->columnSpan(fn (Get $get, $state): int => match ($get('grant')) {
                                     default => 7, // vul,res,imm,prof,wm
-                                    'mod' => $state != null && in_array($state, ['walk', 'climb', 'swim', 'fly', 'burrow']) ? 5 : 7,
-                                    'lang', 'prof', 'sense' => 5,
+                                    'mod' => $state != null && in_array($state, ['walk', 'climb', 'swim', 'fly', 'burrow']) ? 3 : 7,
+                                    'lang', 'prof', 'sense' => 3,
                                 }),
                             Select::make('options')
                                 ->prefix('Options:')
@@ -219,14 +219,15 @@ class FormService
                                 ->visible(fn (Get $get): bool => $get('grant') != null && $get('choice'))
                                 ->columnSpan(fn (Get $get, $state): int => match ($get('grant')) {
                                     default => 7, // vul,res,imm,prof,wm
-                                    'mod' => $state != null && ! empty(array_intersect($state, ['walk', 'climb', 'swim', 'fly', 'burrow'])) ? 5 : 7,
-                                    'lang', 'prof', 'sense' => 5,
+                                    'mod' => $state != null && ! empty(array_intersect($state, ['walk', 'climb', 'swim', 'fly', 'burrow'])) ? 3 : 7,
+                                    'lang', 'prof', 'sense' => 3,
                                 }),
                             TextInput::make('modifier')
                                 ->prefix('Modifier:')
                                 ->suffix(fn (Get $get): ?string => ! empty(array_intersect(array_merge([$get('on'), $get('grant')], $get('options')), ['walk', 'climb', 'swim', 'fly', 'burrow', 'sense'])) ? 'ft.' : null)
+                                ->numeric()
                                 ->visible(fn (Get $get): bool => ! empty(array_intersect(array_merge([$get('on'), $get('grant')], $get('options')), ['walk', 'climb', 'swim', 'fly', 'burrow', 'sense'])))
-                                ->columnSpan(2),
+                                ->columnSpan(4),
                             Select::make('type')
                                 ->prefix('Type:')
                                 ->options([
@@ -236,12 +237,21 @@ class FormService
                                 ])
                                 ->native(false)
                                 ->visible(fn (Get $get): bool => $get('grant') == 'prof')
-                                ->columnSpan(2),
+                                ->columnSpan(4),
                         ])
                             ->columns(12),
+                        Hidden::make('modifier_validated')
+                            ->default(0),
                         TextInput::make('modifier')
                             ->hiddenLabel()
                             ->prefix('Modifier:')
+                            ->suffixAction(
+                                Action::make('validateModifier')
+                                    ->icon(fn (Get $get): Heroicon => $get('modifier_validated') == 0 ? Heroicon::Cog : ($get('modifier_validated') == 2 ? Heroicon::CheckCircle : Heroicon::ExclamationTriangle))
+                                    ->tooltip(fn (Get $get): string => 'Validate modifier, currently '.($get('modifier_validated') == 0 ? 'unvalidated' : ($get('modifier_validated') == 2 ? 'valid' : 'invalid')))
+                                    ->action(fn (?string $state, Set $set) => $set('modifier_validated', ModifierService::validateModifier($state)))
+                            )
+                            ->placeholder('Enter with either \'+\', \'-\', \'*\' or \'/\' between modifiers, e.g. \'2d6 + PB - 1d4\', \'1d12 + DEX\'')
                             ->visible(fn (Get $get): bool => $get('grant') == 'mod' && empty(array_intersect(array_merge([$get('on')], $get('options')), ['walk', 'climb', 'swim', 'fly', 'burrow'])))
                             ->columnSpanFull(),
                         TextInput::make('note')
@@ -256,6 +266,7 @@ class FormService
                 'show_in_actions' => Checkbox::make($input),
                 'has_active' => Checkbox::make($input),
                 'optional_feature' => Checkbox::make($input),
+                default => Hidden::make($input),
             };
         }
 
