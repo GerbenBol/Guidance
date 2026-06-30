@@ -35,7 +35,7 @@ class EditCharacter extends EditRecord
                 'level' => $class['level'],
                 'hp' => $class['hp'],
                 'used_dice' => $class['used_dice'],
-                'modifiers' => $class['modifiers'],
+                'mechanics' => $class['mechanics'],
             ];
         }
 
@@ -51,6 +51,6 @@ class EditCharacter extends EditRecord
 
     public function onChoiceUpdate(string $name, string $class, mixed $value): void
     {
-        $this->data['classes'][$class]['modifiers'][$name] = $value;
+        $this->data['classes'][$class]['mechanics'][$name] = $value;
     }
 }

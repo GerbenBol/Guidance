@@ -11,7 +11,7 @@ class ClassFeature extends Field
 
     public array $feature = [];
 
-    public array $modifiers = [];
+    public array $mechanics = [];
 
     public function referesToFeature(array $feature): static
     {
@@ -20,9 +20,9 @@ class ClassFeature extends Field
         return $this;
     }
 
-    public function allModifiers(array $modifiers): static
+    public function allMechanics(array $mechanics): static
     {
-        $this->modifiers = $modifiers;
+        $this->mechanics = $mechanics;
 
         return $this;
     }
@@ -34,8 +34,8 @@ class ClassFeature extends Field
     }
 
     #[ExposedLivewireMethod]
-    public function getModifiers(): array
+    public function getMechanics(): array
     {
-        return $this->modifiers;
+        return $this->mechanics;
     }
 }

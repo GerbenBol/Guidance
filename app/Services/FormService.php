@@ -273,6 +273,11 @@ class FormService
         return $inputs;
     }
 
+    public static function addPrefixToIDs(string $prefix, array $items): array
+    {
+        return array_flip(array_map(fn ($item) => $prefix.'-'.$item, array_flip($items)));
+    }
+
     private static function getModifierOptions(?string $input): array
     {
         $abilities = self::addPrefixToIDs('abi', Ability::toArray());
@@ -343,11 +348,6 @@ class FormService
             'wm' => [],
             default => [],
         };
-    }
-
-    private static function addPrefixToIDs(string $prefix, array $items): array
-    {
-        return array_flip(array_map(fn ($item) => $prefix.'-'.$item, array_flip($items)));
     }
 }
 

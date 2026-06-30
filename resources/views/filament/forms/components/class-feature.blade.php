@@ -6,17 +6,17 @@
         $key = $getKey();
         $classId = explode('.', $key)[2];
         $feature = $field->getFeature();
-        $allModifiers = $field->getModifiers();
+        $allMechanics = $field->getMechanics();
         $pendingChoices = $totalChoices = 0;
         $choices = false;
 
-        foreach ($feature['modifiers'] as $id => $modifier) {
-            if (isset($modifier['choice']) && $modifier['choice']) {
+        foreach ($feature['mechanics'] ?? [] as $id => $mechanic) {
+            if (isset($mechanic['choice']) && $mechanic['choice']) {
                 $choices = true;
                 $totalChoices++;
 
-                if (!key_exists($modifier['grant'].$id, $allModifiers)) {
-                    $pendingChoices++; //check if it is pending or not
+                if (!key_exists($mechanic['grant'].$id, $allMechanics) || $allMechanics[$mechanic['grant'].$id] == null) {
+                    $pendingChoices++;
                 }
             }
         }
@@ -38,19 +38,20 @@
         </x-slot>
 
         {!! $feature['description'] !!}
+        <br>
 
-        @foreach ($feature['modifiers'] as $id => $modifier)
-            @if (isset($modifier['choice']) && $modifier['choice'])
+        @foreach ($feature['mechanics'] as $id => $mechanic)
+            @if (isset($mechanic['choice']) && $mechanic['choice'])
                 <br>
                 @livewire('select-choice', [
-                    'name' => $modifier['grant'].$id,
-                    'options' => match ($modifier['grant']) {
-                        'skill' => App\Models\Skill::find($modifier['options'])->pluck('name', 'id')->toArray(),
+                    'name' => $mechanic['grant'].$id,
+                    'options' => match ($mechanic['grant']) {
+                        'skill' => App\Models\Skill::find($mechanic['options'])->pluck('name', 'id')->toArray(),
                         default => ['Couldn\'t find corresponding records.'],
                     },
                     'class' => $classId,
-                    'value' => $allModifiers[$modifier['grant'].$id] ?? null,
-                ])
+                    'value' => $allMechanics[$mechanic['grant'].$id] ?? null,
+                ], key($classId.'-'.$feature['name'].'-'.$mechanic['grant'].$id))
             @endif
         @endforeach
     </x-filament::section>
