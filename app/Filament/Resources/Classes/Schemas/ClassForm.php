@@ -145,10 +145,16 @@ class ClassForm
 
                                                         return $lvls;
                                                     })
+                                                    ->default([4, 8, 12, 16])
                                                     ->multiple()
-                                                    ->reorderable(),
+                                                    ->reorderable()
+                                                    ->suffixAction(
+                                                        Action::make('setDefault')
+                                                            ->tooltip('Set default (4, 8, 12, 16)')
+                                                            ->icon(Heroicon::Backward)
+                                                            ->action(fn (Set $set) => $set('asi_lvls', [4, 6, 12, 16]))
+                                                    ),
                                             ])
-                                            ->default([4, 8, 12, 16])
                                             ->collapsible()
                                             ->secondary(),
                                         Section::make('Subclass')

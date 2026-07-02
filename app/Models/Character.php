@@ -25,6 +25,7 @@ class Character extends Model
         'player_id',
         'inventory',
         'settings',
+        'extra_info',
         'updated',
     ];
 
@@ -34,6 +35,7 @@ class Character extends Model
         'background_options' => 'array',
         'inventory' => 'array',
         'settings' => 'array',
+        'extra_info' => 'array',
         'updated' => 'boolean',
     ];
 

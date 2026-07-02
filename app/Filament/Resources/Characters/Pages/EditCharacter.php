@@ -28,15 +28,20 @@ class EditCharacter extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $data['classes'] = [];
+        $data['extra_info'] = [
+            'use_fixed_hp' => false,
+            'hp_modifier' => null,
+            'overwrite_hp' => null,
+        ];
 
         foreach ($this->data['classes'] as $class) {
-            $data['classes'][] = [
-                'id' => $class['id'],
-                'level' => $class['level'],
-                'hp' => $class['hp'],
-                'used_dice' => $class['used_dice'],
-                'mechanics' => $class['mechanics'],
-            ];
+            $data['classes'][] = $class;
+        }
+
+        foreach ($data['extra_info'] as $key => $val) {
+            if (array_key_exists($key, $data)) {
+                $data['extra_info'][$key] = $data[$key];
+            }
         }
 
         return parent::mutateFormDataBeforeSave($data);

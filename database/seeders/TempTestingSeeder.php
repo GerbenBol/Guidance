@@ -21,6 +21,9 @@ class TempTestingSeeder extends Seeder
         PlayerClass::create([
             'name' => 'OG',
             'user_id' => 1,
+            'class_info' => ['asi_lvls' => [], 'save_prof' => ['constitution', 'intelligence'], 'skill_prof' => [3, 4, 6, 5, 1, 17, 14], 'subclass_name' => null, 'primary_ability' => 'dexterity', 'secondary_ability' => 'constitution', 'subclass_start_lvl' => null, 'amount_of_skill_prof' => 3],
+            'spell_info' => ['spellslots' => null, 'borrows_from' => null, 'extra_spells' => [], 'spell_ability' => null, 'can_cast_spells' => false, 'has_own_spelllist' => null],
+            'hit_die' => 'd6',
         ]);
         PlayerClass::create([
             'name' => 'Tester',

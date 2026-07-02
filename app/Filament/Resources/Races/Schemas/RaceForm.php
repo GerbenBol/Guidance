@@ -37,8 +37,7 @@ class RaceForm
                             ]),
                         Tab::make('Features')
                             ->schema([FormService::getFeatureRepeater()]),
-                    ])
-                    ->activeTab(2),
+                    ]),
             ])
             ->columns(1);
     }

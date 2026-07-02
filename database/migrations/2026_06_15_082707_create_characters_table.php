@@ -22,6 +22,7 @@ return new class extends Migration
             $table->json('background_options')->nullable();
             $table->json('inventory')->nullable();
             $table->json('settings')->nullable();
+            $table->json('extra_info')->nullable();
             $table->boolean('updated')->default(true);
             $table->bigInteger('player_id')->unsigned();
 
