@@ -12,6 +12,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -102,29 +103,23 @@ class ClassForm
                                             ->label('Primary Abilities')
                                             ->columns(2)
                                             ->columnSpan(2),
-                                        Select::make('save_prof')
-                                            ->label('Saving Throw Proficiencies')
-                                            ->options(Ability::toArray())
-                                            ->multiple()
-                                            ->maxItems(2),
-                                        FusedGroup::make([
-                                            TextInput::make('amount_of_skill_prof')
-                                                ->prefix('Choose:')
-                                                ->numeric(),
-                                            Select::make('skill_prof')
-                                                ->prefix('From:')
-                                                ->options(Skill::all()->pluck('name', 'id'))
-                                                ->multiple()
-                                                ->columnSpan(4),
-                                        ])
-                                            ->label('Skill Proficiencies')
-                                            ->columns(5)
-                                            ->columnSpan(2),
-                                        // Select::make('other_prof')
-                                        //     ->label('Other Proficiencies')
-                                        //     ->options([])
-                                        //     ->multiple()
-                                        //     ->columnSpanFull(),
+                                        Grid::make(2)
+                                            ->schema([
+                                                Section::make('Primary Class')
+                                                    ->schema([
+                                                        Select::make('save_prof')
+                                                            ->label('Saving Throw Proficiencies')
+                                                            ->options(Ability::toArray())
+                                                            ->multiple()
+                                                            ->maxItems(2),
+                                                        self::getProficiencyRepeater('prof'),
+                                                    ])
+                                                    ->secondary(),
+                                                Section::make('Multiclass')
+                                                    ->schema([self::getProficiencyRepeater('multiclass_prof')])
+                                                    ->secondary(),
+                                            ])
+                                            ->columnSpanFull(),
                                         // Select::make('start_equip')
                                         //     ->label('Starting Equipment')
                                         //     ->
@@ -309,5 +304,48 @@ class ClassForm
                 }
             })
             ->columns(2);
+    }
+
+    private static function getProficiencyRepeater(string $name): Repeater
+    {
+        return Repeater::make($name)
+            ->label('Proficiencies')
+            ->schema([
+                FusedGroup::make([
+                    TextInput::make('amount')
+                        ->prefix('Choose:')
+                        ->numeric()
+                        ->columnSpan(3),
+                    Select::make('type')
+                        ->prefix('Type:')
+                        ->live()
+                        ->options([
+                            'skill' => 'Skills',
+                            // 'save' => 'Saving Throws',
+                            'tool' => 'Tools',
+                            'weaptype' => 'Weapon Types',
+                            'weapon' => 'Weapons',
+                        ])
+                        ->native(false)
+                        ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                        ->placeholder('Select type')
+                        ->columnSpan(4),
+                    Select::make('options')
+                        ->prefix('From:')
+                        ->options(fn (Get $get): array => match ($get('type')) {
+                            'skill' => Skill::getAllRecords('publicOrOwned'),
+                            // 'save' => Ability::saveArray(),
+                            'tool' => [/* tools */],
+                            'weaptype' => [/* weapon types */],
+                            'weapon' => [/* weapons */],
+                            default => [],
+                        })
+                        ->multiple()
+                        ->columnSpan(5),
+                ])
+                    ->columns(12),
+            ])
+            ->reorderable(false)
+            ->addActionLabel('Add proficiency');
     }
 }

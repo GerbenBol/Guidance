@@ -29,7 +29,7 @@ class EditClass extends EditRecord
     {
         if (isset($data['class_info'])) {
             foreach ($data['class_info'] as $key => $value) {
-                $data[$key] = $value;
+                $data[$key] = in_array($key, ['prof', 'multiclass_prof']) ? json_decode(json_encode($value), true) : $value;
             }
         }
 
@@ -58,8 +58,8 @@ class EditClass extends EditRecord
             'primary_ability',
             'secondary_ability',
             'save_prof',
-            'amount_of_skill_prof',
-            'skill_prof',
+            'prof',
+            'multiclass_prof',
             'asi_lvls',
             'subclass_name',
             'subclass_start_lvl',

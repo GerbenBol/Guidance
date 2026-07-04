@@ -64,4 +64,15 @@ class Character extends Model
 
         return PlayerClass::find($classes);
     }
+
+    public function characterLevel(): int
+    {
+        $level = 0;
+
+        foreach ($this->classes as $class) {
+            $level += $class['level'];
+        }
+
+        return $level;
+    }
 }

@@ -7,13 +7,13 @@ use App\Models\Character;
 use App\Models\PlayerClass;
 use Exception;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -26,6 +26,7 @@ use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 
 class CharacterForm
@@ -62,7 +63,6 @@ class CharacterForm
                                 self::getDivider(),
                                 Grid::make('3')
                                     ->schema([
-                                        // Checkbox::make('fixed_hp'),
                                         Select::make('use_fixed_hp')
                                             ->hiddenLabel()
                                             ->prefix('Fixed HP:')
@@ -86,10 +86,15 @@ class CharacterForm
                                     ->formatStateUsing(function ($state, Character $record): string {
                                         foreach ($record->classes as $class) {
                                             $c = PlayerClass::find($class['id']);
-                                            // dd($class);
-                                            $state .= '- '.$c->name.' ('.$c->hit_die.'): '.$class['total_hp'].' [';
-                                            $state .= '<br>';
+                                            $state .= '- '.$c->name.' level '.$class['level'].' ('.$c->hit_die.'): '.$class['total_hp'].' [';
+
+                                            foreach ($class['hp'] as $id => $hp) {
+                                                $state .= ($id != 'level1' ? ' + ' : '').$hp;
+                                            }
+                                            $state .= ']<br>';
                                         }
+
+                                        $state .= '- Constitution Bonus: 0 [0 * '.$record->characterLevel().']<br>';
 
                                         return $state;
                                     })
@@ -161,11 +166,37 @@ class CharacterForm
                                                 ->tooltip('Edit HP')
                                                 ->icon(Heroicon::WrenchScrewdriver)
                                                 ->badge(fn (Get $get): string => $get('level') - ($get('used_dice') ?? 0))
-                                                ->badgeColor('primary')
+                                                ->badgeColor(fn (Get $get): string => $get('level') - ($get('used_dice') ?? 0) == 0 ? 'gray' : 'primary')
                                                 ->modalHeading('Edit HP')
                                                 ->modalSubmitActionLabel('Save')
-                                                ->schema(function (Get $get): array {
-                                                    $schema = [
+                                                ->schema(function (Get $get, Set $set): array {
+                                                    $schema = [];
+
+                                                    for ($i = 0; $i < $get('level') - ($get('level') % 3); $i++) {
+                                                        $schema[] = TextInput::make('level'.($i + 1))
+                                                            ->hiddenLabel()
+                                                            ->prefix('Level '.($i + 1).':')
+                                                            ->default($get('hp')[$i] ?? null)
+                                                            ->live()
+                                                            ->numeric();
+                                                    }
+
+                                                    if ($get('level') % 3 != 0) {
+                                                        $flexSchema = [];
+
+                                                        for ($i = $get('level') - ($get('level') % 3); $i < $get('level'); $i++) {
+                                                            $flexSchema[] = TextInput::make('level'.($i + 1))
+                                                                ->hiddenLabel()
+                                                                ->prefix('Level '.($i + 1).':')
+                                                                ->default($get('hp')[$i] ?? null)
+                                                                ->live()
+                                                                ->numeric();
+                                                        }
+                                                        $schema[] = Flex::make($flexSchema)
+                                                            ->columnSpanFull();
+                                                    }
+
+                                                    return [
                                                         TextEntry::make('hp')
                                                             ->hiddenLabel()
                                                             ->state('Current class HP: '.collect($get('hp'))->sum())
@@ -183,34 +214,38 @@ class CharacterForm
                                                                     ->alignment(Alignment::Center),
                                                                 TextEntry::make('used')
                                                                     ->hiddenLabel()
-                                                                    ->state($get('used_dice').' / '.$get('level'))
+                                                                    ->state(0)
+                                                                    ->formatStateUsing(fn (): string => $get('used_dice').' / '.$get('level'))
                                                                     ->prefixAction(
                                                                         Action::make('removeUsedHitDie')
-                                                                            ->icon(Heroicon::Minus)
-                                                                            ->action(function (Get $get, Set $set) {
-                                                                                $set('used_dice', $get('used_dice') - 1);
-                                                                            })
+                                                                            ->tooltip('Remove rolled Hit Die')
+                                                                            ->icon(Heroicon::OutlinedMinusCircle)
+                                                                            ->iconSize('xl')
+                                                                            ->action(fn () => $set('used_dice', (int) $get('used_dice') - 1))
                                                                     )
                                                                     ->suffixAction(
                                                                         Action::make('addUsedHitDie')
-                                                                            ->icon(Heroicon::Plus)
+                                                                            ->tooltip('Add rolled Hit Die')
+                                                                            ->icon(Heroicon::OutlinedPlusCircle)
+                                                                            ->iconSize('xl')
+                                                                            ->action(fn () => $set('used_dice', (int) $get('used_dice') + 1))
                                                                     )
                                                                     ->size(TextSize::Medium)
                                                                     ->alignment(Alignment::Center),
                                                             ]),
                                                         self::getDivider(),
+                                                        Grid::make(count($schema) > 3 ? 3 : count($schema))
+                                                            ->schema($schema),
                                                     ];
+                                                })
+                                                ->action(function (Set $set, Get $get, array $data) {
+                                                    $levels = [];
 
                                                     for ($i = 0; $i < $get('level'); $i++) {
-                                                        $schema[] = TextInput::make('level'.($i + 1))
-                                                            ->hiddenLabel()
-                                                            ->prefix('Level '.($i + 1).':')
-                                                            ->default($get('hp')[$i] ?? null)
-                                                            ->live()
-                                                            ->numeric();
+                                                        $levels['level'.($i + 1)] = $data['level'.($i + 1)];
                                                     }
-
-                                                    return $schema;
+                                                    $set('total_hp', collect($data)->sum());
+                                                    $set('hp', $levels);
                                                 }))
                                             ->columnSpan(2),
                                         Tabs::make()
@@ -223,36 +258,32 @@ class CharacterForm
                                                         if ($class) {
                                                             try {
                                                                 if (self::isPrimaryClass($get('../'), $class->id)) {
+                                                                    $proficiencies = $class->class_info->prof;
                                                                     $core = [
                                                                         'name' => $class->name.' Core Traits Primary Class',
                                                                         'description' => 'As a primary class the '.$class->name.' gains the following:<br>
                                                                             - <em>Saving Throw Proficiencies: '.implode(', ', array_map(fn ($item) => ucfirst($item), $class->class_info->save_prof)).'</em>',
                                                                         'mechanics' => [],
                                                                     ];
-
-                                                                    for ($i = 0; $i < $class->class_info->amount_of_skill_prof; $i++) {
-                                                                        $core['mechanics'][] = [
-                                                                            'choice' => true,
-                                                                            'grant' => 'skill',
-                                                                            'options' => $class->class_info->skill_prof,
-                                                                        ];
-                                                                    }
                                                                 } else {
+                                                                    $proficiencies = $class->class_info->multiclass_prof;
                                                                     $core = [
                                                                         'name' => $class->name.' Core Traits Multiclass',
                                                                         'description' => 'As a multiclass the '.$class->name.' gains the following:',
                                                                         'mechanics' => [],
                                                                     ];
+                                                                }
 
-                                                                    for ($i = 0; $i < $class->class_info->amount_of_skill_prof; $i++) {
+                                                                foreach ($proficiencies as $prof) {
+                                                                    for ($i = 0; $i < $prof->amount; $i++) {
                                                                         $core['mechanics'][] = [
                                                                             'choice' => true,
-                                                                            'grant' => 'skill',
-                                                                            'options' => $class->class_info->skill_prof,
+                                                                            'grant' => $prof->type,
+                                                                            'options' => $prof->options,
                                                                         ];
                                                                     }
                                                                 }
-                                                                // add weapon profs, tool profs, armor profs to core
+
                                                                 $core['level'] = 1;
                                                                 $features = ['1' => [$core]];
 
@@ -276,6 +307,7 @@ class CharacterForm
                                                                     ->body('The loading of the class failed, this is likely because the class is not ready for use yet. Please try a different class.')
                                                                     ->danger()
                                                                     ->send();
+                                                                Log::error('Error '.$e->getCode().' while attempting to load class \''.$class->name.'\'. Message: '.$e->getMessage());
                                                             }
                                                         }
 
