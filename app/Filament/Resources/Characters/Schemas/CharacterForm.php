@@ -154,7 +154,9 @@ class CharacterForm
                                             ->default(1)
                                             ->columnSpan(4),
                                         Hidden::make('used_dice')
-                                            ->default(0),
+                                            ->default(1),
+                                        Hidden::make('dice_used')
+                                            ->default('level1'),
                                         Hidden::make('hp'),
                                         TextInput::make('total_hp')
                                             ->prefix('HP:')
@@ -169,6 +171,7 @@ class CharacterForm
                                                 ->badgeColor(fn (Get $get): string => $get('level') - ($get('used_dice') ?? 0) == 0 ? 'gray' : 'primary')
                                                 ->modalHeading('Edit HP')
                                                 ->modalSubmitActionLabel('Save')
+                                                ->fillForm(fn (Get $get) => array_merge(($get('hp') ?? ['level1' => str_replace('d', '', PlayerClass::find($get('id'))->hit_die)])))
                                                 ->schema(function (Get $get, Set $set): array {
                                                     $schema = [];
 
@@ -176,9 +179,9 @@ class CharacterForm
                                                         $schema[] = TextInput::make('level'.($i + 1))
                                                             ->hiddenLabel()
                                                             ->prefix('Level '.($i + 1).':')
-                                                            ->default($get('hp')[$i] ?? null)
                                                             ->live()
-                                                            ->numeric();
+                                                            ->numeric()
+                                                            ->afterStateUpdated(fn ($state) => self::assignDice($state, $set, $get, $i + 1));
                                                     }
 
                                                     if ($get('level') % 3 != 0) {
@@ -188,9 +191,9 @@ class CharacterForm
                                                             $flexSchema[] = TextInput::make('level'.($i + 1))
                                                                 ->hiddenLabel()
                                                                 ->prefix('Level '.($i + 1).':')
-                                                                ->default($get('hp')[$i] ?? null)
                                                                 ->live()
-                                                                ->numeric();
+                                                                ->numeric()
+                                                                ->afterStateUpdated(fn ($state) => self::assignDice($state, $set, $get, $i + 1));
                                                         }
                                                         $schema[] = Flex::make($flexSchema)
                                                             ->columnSpanFull();
@@ -314,7 +317,9 @@ class CharacterForm
                                                         return $schema;
                                                     }),
                                                 Tab::make('Spells')
-                                                    ->schema([])
+                                                    ->schema([
+                                                        // time for this
+                                                    ])
                                                     ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false),
                                             ])
                                             ->visible(fn (array $state): bool => $state['id'] ?? false)
@@ -377,5 +382,13 @@ class CharacterForm
         return TextEntry::make('div')
             ->hiddenLabel()
             ->state(new HtmlString('<hr class="border-gray-200 dark:border-gray-700">'));
+    }
+
+    private static function assignDice(?string $state, Set $set, Get $get, int $id): void {
+        $dice_used = $get('dice_used') ?? [];
+        $id = 'level'.$id;
+
+        $set('used_dice', $get('used_dice') + ($state != null ? (!in_array($id, $dice_used) ? 1 : 0) : -1));
+        $set('dice_used', $state != null ? (in_array($id, $dice_used) ? $dice_used : collect($dice_used)->add($id)->toArray()) : array_values(array_filter($dice_used, fn ($item) => $item != $id)));
     }
 }
