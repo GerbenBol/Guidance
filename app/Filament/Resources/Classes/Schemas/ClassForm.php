@@ -179,21 +179,39 @@ class ClassForm
                                     ->columns(2),
                                 Tab::make('Spellcasting')
                                     ->schema([
-                                        Section::make()
+                                        Section::make('General')
                                             ->schema([
-                                                Checkbox::make('can_cast_spells'),
+                                                Checkbox::make('can_cast_spells')
+                                                    ->columnSpan(3),
                                                 Select::make('spell_ability')
-                                                    ->label('Spellcasting Ability')
-                                                    ->options(Ability::toArray())
-                                                    ->native(false),
-                                                Radio::make('has_own_spelllist')
+                                                    ->prefix('Spellcasting Ability')
                                                     ->hiddenLabel()
+                                                    ->options(Ability::toArray())
+                                                    ->native(false)
+                                                    ->columnSpan(9),
+                                                Radio::make('has_own_spelllist')
+                                                    ->label('Has spell list')
                                                     ->live()
-                                                    ->inline()
-                                                    ->boolean('Own Spell List', 'Borrows Spell List'),
+                                                    ->boolean('Own', 'Borrowed')
+                                                    ->columnSpan(4),
+                                                Radio::make('knows_full_spelllist')
+                                                    ->label('Knows all spells in spell list')
+                                                    ->live()
+                                                    ->boolean()
+                                                    ->default(false)
+                                                    ->columnSpan(4),
+                                                Radio::make('regains_spells_on')
+                                                    ->live()
+                                                    ->options([
+                                                        'sh' => 'Short Rest',
+                                                        'lr' => 'Long Rest',
+                                                    ])
+                                                    ->default('lr')
+                                                    ->columnSpan(4),
                                                 Section::make('Own Spell List')
                                                     ->schema(FormService::makeSpellSelectFull())
-                                                    ->visible(fn (Get $get): bool => $get('has_own_spelllist') ?? false),
+                                                    ->visible(fn (Get $get): bool => $get('has_own_spelllist') ?? false)
+                                                    ->columnSpanFull(),
                                                 Section::make('Borrows Spell List')
                                                     ->schema([
                                                         Select::make('borrows_from')
@@ -212,32 +230,98 @@ class ClassForm
                                                         Hidden::make('spell_filters'),
                                                         FormService::makeSpellSelect('extra_spells', 'Additional Spells'),
                                                     ])
-                                                    ->visible(fn (Get $get) => ! $get('has_own_spelllist')),
+                                                    ->visible(fn (Get $get) => ! $get('has_own_spelllist'))
+                                                    ->columnSpanFull(),
+                                                Section::make(fn (Get $get): string => 'Spells '.(! $get('knows_full_spelllist') ? '& Cantrips Known' : 'Prepared & Cantrips Known').' at Level')
+                                                    ->schema([
+                                                        Select::make('active_class_level')
+                                                            ->hiddenLabel()
+                                                            ->live()
+                                                            ->options(function (): array {
+                                                                $ret = [];
+
+                                                                for ($i = 1; $i <= 20; $i++) {
+                                                                    $ret[$i] = 'Class Level '.$i;
+                                                                }
+
+                                                                return $ret;
+                                                            })
+                                                            ->formatStateUsing(fn (?string $state): string => $state ?? 1)
+                                                            ->searchable()
+                                                            ->prefixAction(
+                                                                Action::make('previousLevel')
+                                                                    ->icon(Heroicon::ChevronLeft)
+                                                                    ->action(fn (Set $set, Get $get) => $set('active_class_level', $get('active_class_level') - 1))
+                                                                    ->visible(fn (Get $get): bool => $get('active_class_level') != 1),
+                                                                true
+                                                            )
+                                                            ->suffixAction(
+                                                                Action::make('nextLevel')
+                                                                    ->icon(Heroicon::ChevronRight)
+                                                                    ->action(fn (Set $set, Get $get) => $set('active_class_level', $get('active_class_level') + 1))
+                                                                    ->visible(fn (Get $get): bool => $get('active_class_level') != 20),
+                                                                true
+                                                            ),
+                                                        TextInput::make('known_prepared_amounts')
+                                                            ->default('{}'),
+                                                        FusedGroup::make([
+                                                            TextInput::make('cantrips')
+                                                                ->prefix('Cantrips Known:')
+                                                                ->live()
+                                                                ->formatStateUsing(fn (Get $get): int => $get('known_prepared_amounts')[$get('active_class_level') ?? 1]['cantrips'] ?? 0)
+                                                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                                                    $og = json_decode($get('known_prepared_amounts'), true);
+                                                                    $og[$get('active_class_level') ?? 1]['cantrips'] = (int) $state;
+                                                                    $set('known_prepared_amounts', json_encode($og));
+                                                                })
+                                                                ->numeric(),
+                                                            TextInput::make('spells')
+                                                                ->prefix(fn (Get $get): string => $get('knows_full_spelllist') ? 'Prepared Spells:' : 'Known Spells:')
+                                                                ->live()
+                                                                ->formatStateUsing(fn (Get $get): int => $get('known_prepared_amounts')[$get('active_class_level') ?? 1]['spells'] ?? 0)
+                                                                ->numeric(),
+                                                        ])
+                                                            ->columns(2),
+                                                    ])
+                                                    ->columnSpanFull(),
                                             ])
-                                            ->secondary(),
+                                            ->secondary()
+                                            ->columns(12),
                                         Section::make('Spell Slot Table')
                                             ->schema(function (): array {
                                                 $rows = [
-                                                    Grid::make(2)
-                                                        ->schema([
-                                                            TextInput::make('cantrips')
-                                                                ->numeric(),
-                                                            Select::make('cantrip_upgrades')
-                                                                ->multiple()
-                                                                ->options(function (): array {
-                                                                    $ret = [];
-
-                                                                    for ($i = 1; $i <= 20; $i++) {
-                                                                        $ret[$i] = 'Level '.$i;
-                                                                    }
-
-                                                                    return $ret;
-                                                                }),
-                                                        ]),
                                                     Hidden::make('spellslots'),
+                                                    Hidden::make('open_section'),
+                                                    Select::make('active_level')
+                                                        ->hiddenLabel()
+                                                        ->live()
+                                                        ->native(false)
+                                                        ->options(function (): array {
+                                                            $lvls = [];
+
+                                                            for ($i = 1; $i <= 20; $i++) {
+                                                                $lvls[$i] = 'Character Level '.$i;
+                                                            }
+
+                                                            return $lvls;
+                                                        })
+                                                        ->formatStateUsing(fn (?string $state): string => $state ?? 1)
+                                                        ->prefixAction(
+                                                            Action::make('previousSection')
+                                                                ->icon(Heroicon::ChevronLeft)
+                                                                ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') - 1))
+                                                                ->visible(fn (Get $get): bool => $get('active_level') != 1),
+                                                            true
+                                                        )
+                                                        ->suffixAction(
+                                                            Action::make('nextSection')
+                                                                ->icon(Heroicon::ChevronRight)
+                                                                ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') + 1))
+                                                                ->visible(fn (Get $get): bool => $get('active_level') != 20),
+                                                            true
+                                                        ),
                                                 ];
 
-                                                $rows[] = Hidden::make('open_section');
                                                 for ($lvl = 1; $lvl <= 20; $lvl++) {
                                                     $slotItems = [];
 
@@ -253,53 +337,33 @@ class ClassForm
                                                                 $level = $slots[$lvlslot[0]] ?? [];                 // Get current data for character level
                                                                 $level[$lvlslot[1]] = (int) $state;                 // Set data for spell slots at character level
                                                                 $slots[$lvlslot[0]] = $level;                       // Reinject data into all spell slots
+
+                                                                for ($i = $lvlslot[0] + 1; $i <= 20; $i++) {        // Also update following levels for QoL on the first time making spellcasting for a class
+                                                                    $higherLevel = $slots[$i] ?? [];
+
+                                                                    if (! isset($higherLevel[$lvlslot[1]]) || $higherLevel[$lvlslot[1]] < (int) $state) {
+                                                                        $higherLevel[$lvlslot[1]] = (int) $state;
+                                                                        $set($i.'_'.$lvlslot[1], (int) $state);
+                                                                    }
+                                                                    $slots[$i] = $higherLevel;
+                                                                }
                                                                 $set('spellslots', json_encode($slots));
                                                             });
                                                     }
+
                                                     $rows[] = Section::make()
                                                         ->schema($slotItems)
-                                                        ->afterHeader([
-                                                            Select::make('active_level')
-                                                                ->hiddenLabel()
-                                                                ->live()
-                                                                ->native(false)
-                                                                ->options(function (): array {
-                                                                    $lvls = [];
-
-                                                                    for ($i = 1; $i <= 20; $i++) {
-                                                                        $lvls[$i] = 'Character Level '.$i;
-                                                                    }
-
-                                                                    return $lvls;
-                                                                })
-                                                                ->formatStateUsing(fn (?string $state): string => $state ?? 1)
-                                                                ->prefixAction(
-                                                                    Action::make('previousSection')
-                                                                        ->icon(Heroicon::ChevronLeft)
-                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') - 1))
-                                                                        ->visible(fn (Get $get): bool => $get('active_level') != 1),
-                                                                    true
-                                                                )
-                                                                ->suffixAction(
-                                                                    Action::make('nextSection')
-                                                                        ->icon(Heroicon::ChevronRight)
-                                                                        ->action(fn (Set $set, Get $get) => $set('active_level', $get('active_level') + 1))
-                                                                        ->visible(fn (Get $get): bool => $get('active_level') != 20),
-                                                                    true
-                                                                ),
-                                                        ])
                                                         ->visible(fn (Get $get): bool => $get('active_level') ? $get('active_level') == $lvl : $lvl == 1);
                                                 }
 
                                                 return $rows;
                                             })
-                                            // ->collapsible()
-                                            ->collapsed()
                                             ->secondary(),
                                     ])
                                     ->columns(2),
                             ])
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->activeTab(3),
                     ];
                 }
             })
@@ -349,3 +413,5 @@ class ClassForm
             ->addActionLabel('Add proficiency');
     }
 }
+
+// "{\"1\":{\"cantrips\":3}}"

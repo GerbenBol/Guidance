@@ -384,11 +384,12 @@ class CharacterForm
             ->state(new HtmlString('<hr class="border-gray-200 dark:border-gray-700">'));
     }
 
-    private static function assignDice(?string $state, Set $set, Get $get, int $id): void {
+    private static function assignDice(?string $state, Set $set, Get $get, int $id): void
+    {
         $dice_used = $get('dice_used') ?? [];
         $id = 'level'.$id;
 
-        $set('used_dice', $get('used_dice') + ($state != null ? (!in_array($id, $dice_used) ? 1 : 0) : -1));
+        $set('used_dice', $get('used_dice') + ($state != null ? (! in_array($id, $dice_used) ? 1 : 0) : -1));
         $set('dice_used', $state != null ? (in_array($id, $dice_used) ? $dice_used : collect($dice_used)->add($id)->toArray()) : array_values(array_filter($dice_used, fn ($item) => $item != $id)));
     }
 }

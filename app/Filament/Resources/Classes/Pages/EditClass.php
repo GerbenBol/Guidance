@@ -66,12 +66,16 @@ class EditClass extends EditRecord
         ];
 
         $spell_inputs = [
+            // 'cantrips',
             'can_cast_spells',
             'spell_ability',
             'has_own_spelllist',
+            'knows_full_spelllist',
+            'regains_spells_on',
+            'known_prepared_amounts',
             'borrows_from',
             'extra_spells',
-            'spells',
+            // 'spells',
             'spellslots',
         ];
 
