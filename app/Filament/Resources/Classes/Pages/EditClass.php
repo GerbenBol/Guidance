@@ -75,7 +75,8 @@ class EditClass extends EditRecord
             'known_prepared_amounts',
             'borrows_from',
             'extra_spells',
-            // 'spells',
+            'spells',
+            'extra_spells',
             'spellslots',
         ];
 

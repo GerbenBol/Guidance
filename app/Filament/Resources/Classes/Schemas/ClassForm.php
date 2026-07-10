@@ -237,6 +237,23 @@ class ClassForm
                                                         Select::make('active_class_level')
                                                             ->hiddenLabel()
                                                             ->live()
+                                                            ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                                                $amounts = json_decode($get('known_prepared_amounts'), true);
+                                                                $cantrips = $spells = null;
+
+                                                                for ($i = $state ?? 1; $i > 0; $i--) {
+                                                                    if (isset($amounts[$i])) {
+                                                                        if (! $cantrips && isset($amounts[$i]['cantrips'])) {
+                                                                            $cantrips = $amounts[$i]['cantrips'];
+                                                                        }
+                                                                        if (! $spells && isset($amounts[$i]['spells'])) {
+                                                                            $spells = $amounts[$i]['spells'];
+                                                                        }
+                                                                    }
+                                                                }
+                                                                $set('cantrips', $cantrips ?? 0);
+                                                                $set('prepared_spells_amount', $spells ?? 0);
+                                                            })
                                                             ->options(function (): array {
                                                                 $ret = [];
 
@@ -262,23 +279,28 @@ class ClassForm
                                                                     ->visible(fn (Get $get): bool => $get('active_class_level') != 20),
                                                                 true
                                                             ),
-                                                        TextInput::make('known_prepared_amounts')
+                                                        Hidden::make('known_prepared_amounts')
                                                             ->default('{}'),
                                                         FusedGroup::make([
                                                             TextInput::make('cantrips')
                                                                 ->prefix('Cantrips Known:')
                                                                 ->live()
-                                                                ->formatStateUsing(fn (Get $get): int => $get('known_prepared_amounts')[$get('active_class_level') ?? 1]['cantrips'] ?? 0)
+                                                                ->formatStateUsing(fn (Get $get): int => json_decode($get('known_prepared_amounts'), true)[$get('active_class_level') ?? 1]['cantrips'] ?? 0)
                                                                 ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                                                     $og = json_decode($get('known_prepared_amounts'), true);
                                                                     $og[$get('active_class_level') ?? 1]['cantrips'] = (int) $state;
                                                                     $set('known_prepared_amounts', json_encode($og));
                                                                 })
                                                                 ->numeric(),
-                                                            TextInput::make('spells')
+                                                            TextInput::make('prepared_spells_amount')
                                                                 ->prefix(fn (Get $get): string => $get('knows_full_spelllist') ? 'Prepared Spells:' : 'Known Spells:')
                                                                 ->live()
-                                                                ->formatStateUsing(fn (Get $get): int => $get('known_prepared_amounts')[$get('active_class_level') ?? 1]['spells'] ?? 0)
+                                                                ->formatStateUsing(fn (Get $get): int => json_decode($get('known_prepared_amounts'), true)[$get('active_class_level') ?? 1]['spells'] ?? 0)
+                                                                ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                                                    $og = json_decode($get('known_prepared_amounts'), true);
+                                                                    $og[$get('active_class_level') ?? 1]['spells'] = (int) $state;
+                                                                    $set('known_prepared_amounts', json_encode($og));
+                                                                })
                                                                 ->numeric(),
                                                         ])
                                                             ->columns(2),
@@ -300,7 +322,7 @@ class ClassForm
                                                             $lvls = [];
 
                                                             for ($i = 1; $i <= 20; $i++) {
-                                                                $lvls[$i] = 'Character Level '.$i;
+                                                                $lvls[$i] = 'Class Level '.$i;
                                                             }
 
                                                             return $lvls;
@@ -362,8 +384,7 @@ class ClassForm
                                     ])
                                     ->columns(2),
                             ])
-                            ->columnSpanFull()
-                            ->activeTab(3),
+                            ->columnSpanFull(),
                     ];
                 }
             })

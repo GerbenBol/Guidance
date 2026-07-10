@@ -5,12 +5,14 @@ namespace App\Filament\Resources\Characters\Schemas;
 use App\Filament\Forms\Components\ClassFeature;
 use App\Models\Character;
 use App\Models\PlayerClass;
+use App\Models\Spell;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Flex;
@@ -318,11 +320,46 @@ class CharacterForm
                                                     }),
                                                 Tab::make('Spells')
                                                     ->schema([
-                                                        // time for this
+                                                        TextEntry::make('chosen')
+                                                            ->state('Chosen Spells: 0/7')
+                                                            ->afterContent(
+                                                                Action::make('openChosenSpells')
+                                                                    ->slideOver()
+                                                                    ->schema([
+                                                                        TextEntry::make('something'),
+                                                                    ])
+                                                            ),
+                                                        TextEntry::make('available')
+                                                            ->state('Available Spells')
+                                                            ->afterContent(
+                                                                Action::make('openChosenSpells')
+                                                                    ->slideOver()
+                                                                    ->schema([
+                                                                        RepeatableEntry::make('available_spells')
+                                                                            ->schema([
+                                                                                TextEntry::make('name'),
+                                                                            ])
+                                                                            ->state(function (Get $get): array {
+                                                                                dd($get('../id'));
+                                                                                $spinfo = PlayerClass::find($get('id'))->spell_info;
+                                                                                $spells = [];
+
+                                                                                foreach (array_merge($spinfo->spells ?? [], $spinfo->extra_spells ?? []) as $spellID) {
+                                                                                    $spell = Spell::find($spellID);
+                                                                                    $spells[] = [
+                                                                                        'name' => $spell->name,
+                                                                                    ];
+                                                                                }
+
+                                                                                return $spells;
+                                                                            }),
+                                                                    ])
+                                                            ),
                                                     ])
                                                     ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false),
                                             ])
-                                            ->visible(fn (array $state): bool => $state['id'] ?? false)
+                                            // ->visible(fn (array $state): bool => $state['id'] ?? false)
+                                            ->activeTab(2)
                                             ->columnSpanFull(),
                                     ])
                                     ->reorderable(false)
