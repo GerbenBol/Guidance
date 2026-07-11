@@ -319,7 +319,7 @@ class CharacterForm
                                                         return $schema;
                                                     }),
                                                 Tab::make('Spells')
-                                                    ->schema([
+                                                    ->schema(fn (Get $get): array => [
                                                         TextEntry::make('chosen')
                                                             ->state('Chosen Spells: 0/7')
                                                             ->afterContent(
@@ -332,27 +332,33 @@ class CharacterForm
                                                         TextEntry::make('available')
                                                             ->state('Available Spells')
                                                             ->afterContent(
-                                                                Action::make('openChosenSpells')
+                                                                Action::make('openAvailableSpells')
                                                                     ->slideOver()
                                                                     ->schema([
                                                                         RepeatableEntry::make('available_spells')
                                                                             ->schema([
-                                                                                TextEntry::make('name'),
+                                                                                TextEntry::make('name')
+                                                                                    ->hiddenLabel()
+                                                                                    // ->state(function (TextEntry $component): string {
+                                                                                    //     $index = explode('.', $component->getStatePath())[1];
+                                                                                    //     dd($component->getContainer()->getParentComponent()->getState()[$index]);
+                                                                                    // })
+                                                                                    ->afterContent(
+                                                                                        Action::make('checkoutSpell')
+                                                                                            ->schema(function (TextEntry $component): array {
+                                                                                                $schema = [];
+                                                                                                $index = explode('.', $component->getStatePath())[1];
+                                                                                                $state = $component->getContainer()->getParentComponent()->getState()[$index];
+
+                                                                                                $schema = [
+                                                                                                    TextEntry::make('spell')
+                                                                                                        ->state($state['name'])
+                                                                                                ];
+                                                                                                return $schema;
+                                                                                            })
+                                                                                    )
                                                                             ])
-                                                                            ->state(function (Get $get): array {
-                                                                                dd($get('../id'));
-                                                                                $spinfo = PlayerClass::find($get('id'))->spell_info;
-                                                                                $spells = [];
-
-                                                                                foreach (array_merge($spinfo->spells ?? [], $spinfo->extra_spells ?? []) as $spellID) {
-                                                                                    $spell = Spell::find($spellID);
-                                                                                    $spells[] = [
-                                                                                        'name' => $spell->name,
-                                                                                    ];
-                                                                                }
-
-                                                                                return $spells;
-                                                                            }),
+                                                                            ->state(fn (): array => self::getAvailableSpells($get('id'))),
                                                                     ])
                                                             ),
                                                     ])
@@ -428,5 +434,20 @@ class CharacterForm
 
         $set('used_dice', $get('used_dice') + ($state != null ? (! in_array($id, $dice_used) ? 1 : 0) : -1));
         $set('dice_used', $state != null ? (in_array($id, $dice_used) ? $dice_used : collect($dice_used)->add($id)->toArray()) : array_values(array_filter($dice_used, fn ($item) => $item != $id)));
+    }
+
+    private static function getAvailableSpells(int $classID): array {
+        $spinfo = PlayerClass::find($classID)->spell_info;
+        $spells = [];
+
+        foreach (array_merge($spinfo->spells ?? [], $spinfo->extra_spells ?? []) as $spellID) {
+            $spell = Spell::find($spellID);
+            $spells[] = [
+                'name' => $spell->name,
+            ];
+        }
+        $spells = array_merge($spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells);
+
+        return $spells;
     }
 }
