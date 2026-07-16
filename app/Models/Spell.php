@@ -29,6 +29,7 @@ class Spell extends Model
 
     protected $casts = [
         'components' => 'array',
+        'arearange' => 'array',
         'casting_time' => 'array',
         'duration' => 'array',
         'effect' => 'array',

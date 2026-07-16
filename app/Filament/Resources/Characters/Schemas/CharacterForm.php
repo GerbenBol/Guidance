@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Characters\Schemas;
 use App\Filament\Forms\Components\ClassFeature;
 use App\Models\Character;
 use App\Models\PlayerClass;
+use App\Models\School;
 use App\Models\Spell;
 use Exception;
 use Filament\Actions\Action;
@@ -17,6 +18,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
@@ -112,7 +114,8 @@ class CharacterForm
                                             <li>- Any other HP multipliers or modifiers.</li>
                                         </ul><br>'.
                                         'The sum of the above values is the character\'s total HP. This can also be overwritten.'
-                                    )),
+                                    ))
+                                    ->html(),
                             ])
                     ),
                 Wizard::make(function (Get $get): array {
@@ -334,32 +337,40 @@ class CharacterForm
                                                             ->afterContent(
                                                                 Action::make('openAvailableSpells')
                                                                     ->slideOver()
-                                                                    ->schema([
-                                                                        RepeatableEntry::make('available_spells')
-                                                                            ->schema([
-                                                                                TextEntry::make('name')
-                                                                                    ->hiddenLabel()
-                                                                                    // ->state(function (TextEntry $component): string {
-                                                                                    //     $index = explode('.', $component->getStatePath())[1];
-                                                                                    //     dd($component->getContainer()->getParentComponent()->getState()[$index]);
-                                                                                    // })
-                                                                                    ->afterContent(
-                                                                                        Action::make('checkoutSpell')
-                                                                                            ->schema(function (TextEntry $component): array {
-                                                                                                $schema = [];
-                                                                                                $index = explode('.', $component->getStatePath())[1];
-                                                                                                $state = $component->getContainer()->getParentComponent()->getState()[$index];
+                                                                    ->schema(function (Get $get): array {
+                                                                        $schema = [];
 
-                                                                                                $schema = [
-                                                                                                    TextEntry::make('spell')
-                                                                                                        ->state($state['name'])
-                                                                                                ];
-                                                                                                return $schema;
-                                                                                            })
-                                                                                    )
-                                                                            ])
-                                                                            ->state(fn (): array => self::getAvailableSpells($get('id'))),
-                                                                    ])
+                                                                        foreach (self::getAvailableSpells($get('id')) as $spell) {
+                                                                            $schema[] = Section::make($spell->name)
+                                                                                ->headerActions([
+                                                                                    Action::make('addSpellToList')
+                                                                                        ->hiddenLabel()
+                                                                                        ->icon(Heroicon::PlusCircle),
+                                                                                ])
+                                                                                ->description(($spell->level != 0 ? 'Level '.$spell->level.' ' : '').$spell->school->name.' '.($spell->level == 0 ? 'Cantrip' : ''))
+                                                                                ->schema([
+                                                                                    TextEntry::make('details')
+                                                                                        ->hiddenLabel()
+                                                                                        ->state(new HtmlString(
+                                                                                            '<b>Casting Time:</b> '.($spell->casting_time['time'] ?? '').' '.($spell->casting_time['type'] ?? '').'<br>
+                                                                                            <b>Range/Area:</b> '.($spell->arearange['range'] ?? '').' / '.($spell->arearange['area'] ?? '').'<br>
+                                                                                            <b>Components:</b> '.(implode(', ', array_map(fn ($item) => strtoupper($item), $spell->components['components'])) ?? '').(in_array('m', $spell->components['components']) ? ' ('.$spell->components['materials'].')' : '').'<br>
+                                                                                            <b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '')
+                                                                                        ))
+                                                                                        ->html(),
+                                                                                    self::getDivider(),
+                                                                                    TextEntry::make('description')
+                                                                                        ->hiddenLabel()
+                                                                                        ->state($spell->description)
+                                                                                        ->html(),
+                                                                                ])
+                                                                                ->collapsed()
+                                                                                ->secondary()
+                                                                                ->compact();
+                                                                        }
+                                                                        return $schema;
+                                                                    })
+                                                                    ->fillForm(self::getAvailableSpells($get('id')))
                                                             ),
                                                     ])
                                                     ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false),
@@ -442,9 +453,7 @@ class CharacterForm
 
         foreach (array_merge($spinfo->spells ?? [], $spinfo->extra_spells ?? []) as $spellID) {
             $spell = Spell::find($spellID);
-            $spells[] = [
-                'name' => $spell->name,
-            ];
+            $spells[] = $spell;
         }
         $spells = array_merge($spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells);
 

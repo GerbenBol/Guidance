@@ -143,7 +143,7 @@ class SpellForm
                                                         ->numeric()
                                                         ->visible(fn (Get $get): bool => $get('duration') && $get('duration') != 'instantanious'),
                                                     Select::make('duration')
-                                                        ->options(['instantanious' => 'Instantanious'] + Time::toArray())
+                                                        ->options(['instant' => 'Instantanious'] + Time::toArray())
                                                         ->native(false)
                                                         ->live()
                                                         ->columnSpan(fn (Get $get): int => $get('duration') && $get('duration') != 'instantanious' ? 3 : 4),
