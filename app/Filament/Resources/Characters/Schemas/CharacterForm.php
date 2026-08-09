@@ -323,29 +323,62 @@ class CharacterForm
                                                     }),
                                                 Tab::make('Spells')
                                                     ->schema(fn (Get $get): array => [
+                                                        Hidden::make('chosen_cantrips')
+                                                            ->default('[]'),
+                                                        Hidden::make('chosen_spells')
+                                                            ->default('[]'),
                                                         TextEntry::make('chosen')
-                                                            ->state('Chosen Spells: 0/7')
-                                                            ->afterContent(
+                                                            ->hiddenLabel()
+                                                            ->state(
+                                                                fn (Get $get): string => 
+                                                                    'Spells: '. count(json_decode($get('chosen_spells') ?? '[]')) .'/'.PlayerClass::find($get('id'))->preparedSpellsAtLevel($get('level')).' & '.
+                                                                    'Cantrips: '.count(json_decode($get('chosen_cantrips') ?? '[]')) .'/'.PlayerClass::find($get('id'))->cantripsAtLevel($get('level'))
+                                                            )
+                                                            ->beforeContent(
                                                                 Action::make('openChosenSpells')
                                                                     ->slideOver()
+                                                                    ->modalSubmitActionLabel('Done')
+                                                                    ->hiddenLabel()
+                                                                    ->tooltip('View chosen spells')
+                                                                    ->icon(Heroicon::Eye)
+                                                                    ->button()
                                                                     ->schema([
                                                                         TextEntry::make('something'),
                                                                     ])
-                                                            ),
-                                                        TextEntry::make('available')
-                                                            ->state('Available Spells')
+                                                            )
                                                             ->afterContent(
                                                                 Action::make('openAvailableSpells')
                                                                     ->slideOver()
-                                                                    ->schema(function (Get $get): array {
-                                                                        $schema = [];
+                                                                    ->modalSubmitActionLabel('Done')
+                                                                    ->hiddenLabel()
+                                                                    ->tooltip('Select/Change prepared spells')
+                                                                    ->icon(Heroicon::ChevronRight)
+                                                                    ->button()
+                                                                    ->schema(function (Get $get, Set $set): array {
+                                                                        $schema = [
+                                                                            Hidden::make('activeSpellFilters'),
+                                                                            TextInput::make('searchSpells')
+                                                                                ->hiddenLabel()
+                                                                                ->placeholder('Search for a spell')
+                                                                                ->live()
+                                                                                ->suffixAction(
+                                                                                    Action::make('filterSpells')
+                                                                                        ->tooltip('Extra filters')
+                                                                                        ->icon(Heroicon::Funnel)
+                                                                                        ->schema([
+                                                                                            Select::make('school'),
+                                                                                        ])
+                                                                                )
+                                                                        ];
 
-                                                                        foreach (self::getAvailableSpells($get('id')) as $spell) {
+                                                                        foreach (self::getAvailableSpells($get('id')) as $id => $spell) {
                                                                             $schema[] = Section::make($spell->name)
                                                                                 ->headerActions([
-                                                                                    Action::make('addSpellToList')
+                                                                                    Action::make('addSpell'.$id.'ToList')
                                                                                         ->hiddenLabel()
-                                                                                        ->icon(Heroicon::PlusCircle),
+                                                                                        ->icon(Heroicon::PlusCircle)
+                                                                                        ->size('sm')
+                                                                                        ->action(fn () => self::setSpellList($get, $set, $id)),
                                                                                 ])
                                                                                 ->description(($spell->level != 0 ? 'Level '.$spell->level.' ' : '').$spell->school->name.' '.($spell->level == 0 ? 'Cantrip' : ''))
                                                                                 ->schema([
@@ -366,14 +399,16 @@ class CharacterForm
                                                                                 ])
                                                                                 ->collapsed()
                                                                                 ->secondary()
-                                                                                ->compact();
+                                                                                ->compact()
+                                                                                ->visible(fn (Get $get): bool => !$get('searchSpells') || strtolower($get('searchSpells')) == strtolower($spell->name));
                                                                         }
                                                                         return $schema;
                                                                     })
                                                                     ->fillForm(self::getAvailableSpells($get('id')))
                                                             ),
                                                     ])
-                                                    ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false),
+                                                    ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false)
+                                                    // ->columns(2),
                                             ])
                                             // ->visible(fn (array $state): bool => $state['id'] ?? false)
                                             ->activeTab(2)
@@ -453,10 +488,22 @@ class CharacterForm
 
         foreach (array_merge($spinfo->spells ?? [], $spinfo->extra_spells ?? []) as $spellID) {
             $spell = Spell::find($spellID);
-            $spells[] = $spell;
+            $spells[$spell->id] = $spell;
         }
-        $spells = array_merge($spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells, $spells);
-
         return $spells;
+    }
+
+    private static function setSpellList(Get $get, Set $set, int $spellID) {
+        $array = 'chosen_'.(Spell::find($spellID)->level == 0 ? 'cantrips' : 'spells');
+        $chosen = json_decode($get($array)) ?? [];
+
+        if (!in_array($spellID, $chosen)) {
+            $chosen[] = $spellID;
+        } else {
+            $chosen = array_flip($chosen);
+            unset($chosen[$spellID]);
+            $chosen = array_flip($chosen);
+        }
+        $set($array, json_encode($chosen));
     }
 }

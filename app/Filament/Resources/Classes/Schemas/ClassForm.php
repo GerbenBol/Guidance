@@ -434,5 +434,3 @@ class ClassForm
             ->addActionLabel('Add proficiency');
     }
 }
-
-// "{\"1\":{\"cantrips\":3}}"
