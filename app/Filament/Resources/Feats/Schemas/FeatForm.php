@@ -43,7 +43,7 @@ class FeatForm
                             ])
                             ->columns(4),
                         Tab::make('Features')
-                            ->schema([FormService::getFeatureRepeater(['name', 'snippet', 'description', 'modifiers', 'replaces', 'show_in_actions', 'has_active'])]),
+                            ->schema([FormService::getFeatureRepeater(['name', 'snippet', 'description', 'mechanics', 'replaces', 'show_in_actions', 'has_active'])]),
                         Tab::make('Requirements')
                             ->schema([
                                 Repeater::make('requirements')

@@ -259,7 +259,7 @@ class FormService
                             ->prefix('Note:')
                             ->placeholder('E.g. Advantage on DEX saves against effects you can see.'),
                     ])
-                    ->addActionLabel('Add modifier')
+                    ->addActionLabel('Add mechanic')
                     ->cloneable()
                     ->columnSpanFull(),
                 'replaces' => Checkbox::make($input),

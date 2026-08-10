@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Characters\Schemas;
 use App\Filament\Forms\Components\ClassFeature;
 use App\Models\Character;
 use App\Models\PlayerClass;
-use App\Models\School;
 use App\Models\Spell;
 use Exception;
 use Filament\Actions\Action;
@@ -13,14 +12,11 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
@@ -256,163 +252,160 @@ class CharacterForm
                                                     $set('hp', $levels);
                                                 }))
                                             ->columnSpan(2),
-                                        Tabs::make()
-                                            ->tabs([
-                                                Tab::make('Features')
-                                                    ->schema(function (array $state, Get $get, Set $set): array {
-                                                        $class = PlayerClass::find($state['id']);
-                                                        $schema = [];
+                                        Section::make('Features')
+                                            ->schema(function (array $state, Get $get, Set $set): array {
+                                                $class = PlayerClass::find($state['id']);
+                                                $schema = [];
 
-                                                        if ($class) {
-                                                            try {
-                                                                if (self::isPrimaryClass($get('../'), $class->id)) {
-                                                                    $proficiencies = $class->class_info->prof;
-                                                                    $core = [
-                                                                        'name' => $class->name.' Core Traits Primary Class',
-                                                                        'description' => 'As a primary class the '.$class->name.' gains the following:<br>
-                                                                            - <em>Saving Throw Proficiencies: '.implode(', ', array_map(fn ($item) => ucfirst($item), $class->class_info->save_prof)).'</em>',
-                                                                        'mechanics' => [],
-                                                                    ];
-                                                                } else {
-                                                                    $proficiencies = $class->class_info->multiclass_prof;
-                                                                    $core = [
-                                                                        'name' => $class->name.' Core Traits Multiclass',
-                                                                        'description' => 'As a multiclass the '.$class->name.' gains the following:',
-                                                                        'mechanics' => [],
-                                                                    ];
-                                                                }
+                                                if ($class) {
+                                                    try {
+                                                        if (self::isPrimaryClass($get('../'), $class->id)) {
+                                                            $proficiencies = $class->class_info->prof;
+                                                            $core = [
+                                                                'name' => $class->name.' Core Traits Primary Class',
+                                                                'description' => 'As a primary class the '.$class->name.' gains the following:<br>
+                                                                    - <em>Saving Throw Proficiencies: '.implode(', ', array_map(fn ($item) => ucfirst($item), $class->class_info->save_prof)).'</em>',
+                                                                'mechanics' => [],
+                                                            ];
+                                                        } else {
+                                                            $proficiencies = $class->class_info->multiclass_prof;
+                                                            $core = [
+                                                                'name' => $class->name.' Core Traits Multiclass',
+                                                                'description' => 'As a multiclass the '.$class->name.' gains the following:',
+                                                                'mechanics' => [],
+                                                            ];
+                                                        }
 
-                                                                foreach ($proficiencies as $prof) {
-                                                                    for ($i = 0; $i < $prof->amount; $i++) {
-                                                                        $core['mechanics'][] = [
-                                                                            'choice' => true,
-                                                                            'grant' => $prof->type,
-                                                                            'options' => $prof->options,
-                                                                        ];
-                                                                    }
-                                                                }
-
-                                                                $core['level'] = 1;
-                                                                $features = ['1' => [$core]];
-
-                                                                foreach (($class->features ?? []) as $feature) {
-                                                                    $features[$feature['level']][] = $feature;
-                                                                }
-
-                                                                foreach ($features as $level) {
-                                                                    foreach ($level as $feature) {
-                                                                        $schema[] = ClassFeature::make($feature['name'])
-                                                                            ->hiddenLabel()
-                                                                            ->visible(fn (Get $get): bool => $feature['level'] <= $get('level'))
-                                                                            ->referesToFeature($feature)
-                                                                            ->allMechanics($state['mechanics'] ?? []);
-                                                                    }
-                                                                }
-                                                            } catch (Exception $e) {
-                                                                $set('id', null);
-                                                                Notification::make('classLoadingFailed')
-                                                                    ->title('Loading \''.$class->name.'\' failed')
-                                                                    ->body('The loading of the class failed, this is likely because the class is not ready for use yet. Please try a different class.')
-                                                                    ->danger()
-                                                                    ->send();
-                                                                Log::error('Error '.$e->getCode().' while attempting to load class \''.$class->name.'\'. Message: '.$e->getMessage());
+                                                        foreach ($proficiencies as $prof) {
+                                                            for ($i = 0; $i < $prof->amount; $i++) {
+                                                                $core['mechanics'][] = [
+                                                                    'choice' => true,
+                                                                    'grant' => $prof->type,
+                                                                    'options' => $prof->options,
+                                                                ];
                                                             }
                                                         }
 
-                                                        return $schema;
-                                                    }),
-                                                Tab::make('Spells')
-                                                    ->schema(fn (Get $get): array => [
-                                                        Hidden::make('chosen_cantrips')
-                                                            ->default('[]'),
-                                                        Hidden::make('chosen_spells')
-                                                            ->default('[]'),
-                                                        TextEntry::make('chosen')
-                                                            ->hiddenLabel()
-                                                            ->state(
-                                                                fn (Get $get): string => 
-                                                                    'Spells: '. count(json_decode($get('chosen_spells') ?? '[]')) .'/'.PlayerClass::find($get('id'))->preparedSpellsAtLevel($get('level')).' & '.
-                                                                    'Cantrips: '.count(json_decode($get('chosen_cantrips') ?? '[]')) .'/'.PlayerClass::find($get('id'))->cantripsAtLevel($get('level'))
-                                                            )
-                                                            ->beforeContent(
-                                                                Action::make('openChosenSpells')
-                                                                    ->slideOver()
-                                                                    ->modalSubmitActionLabel('Done')
-                                                                    ->hiddenLabel()
-                                                                    ->tooltip('View chosen spells')
-                                                                    ->icon(Heroicon::Eye)
-                                                                    ->button()
-                                                                    ->schema([
-                                                                        TextEntry::make('something'),
-                                                                    ])
-                                                            )
-                                                            ->afterContent(
-                                                                Action::make('openAvailableSpells')
-                                                                    ->slideOver()
-                                                                    ->modalSubmitActionLabel('Done')
-                                                                    ->hiddenLabel()
-                                                                    ->tooltip('Select/Change prepared spells')
-                                                                    ->icon(Heroicon::ChevronRight)
-                                                                    ->button()
-                                                                    ->schema(function (Get $get, Set $set): array {
-                                                                        $schema = [
-                                                                            Hidden::make('activeSpellFilters'),
-                                                                            TextInput::make('searchSpells')
-                                                                                ->hiddenLabel()
-                                                                                ->placeholder('Search for a spell')
-                                                                                ->live()
-                                                                                ->suffixAction(
-                                                                                    Action::make('filterSpells')
-                                                                                        ->tooltip('Extra filters')
-                                                                                        ->icon(Heroicon::Funnel)
-                                                                                        ->schema([
-                                                                                            Select::make('school'),
-                                                                                        ])
-                                                                                )
-                                                                        ];
+                                                        $core['level'] = 1;
+                                                        $features = ['1' => [$core]];
 
-                                                                        foreach (self::getAvailableSpells($get('id')) as $id => $spell) {
-                                                                            $schema[] = Section::make($spell->name)
-                                                                                ->headerActions([
-                                                                                    Action::make('addSpell'.$id.'ToList')
-                                                                                        ->hiddenLabel()
-                                                                                        ->icon(Heroicon::PlusCircle)
-                                                                                        ->size('sm')
-                                                                                        ->action(fn () => self::setSpellList($get, $set, $id)),
-                                                                                ])
-                                                                                ->description(($spell->level != 0 ? 'Level '.$spell->level.' ' : '').$spell->school->name.' '.($spell->level == 0 ? 'Cantrip' : ''))
+                                                        foreach (($class->features ?? []) as $feature) {
+                                                            $features[$feature['level']][] = $feature;
+                                                        }
+
+                                                        foreach ($features as $level) {
+                                                            foreach ($level as $feature) {
+                                                                $schema[] = ClassFeature::make($feature['name'])
+                                                                    ->hiddenLabel()
+                                                                    ->visible(fn (Get $get): bool => $feature['level'] <= $get('level'))
+                                                                    ->referesToFeature($feature)
+                                                                    ->allMechanics($state['mechanics'] ?? []);
+                                                            }
+                                                        }
+                                                    } catch (Exception $e) {
+                                                        $set('id', null);
+                                                        Notification::make('classLoadingFailed')
+                                                            ->title('Loading \''.$class->name.'\' failed')
+                                                            ->body('The loading of the class failed, this is likely because the class is not ready for use yet. Please try a different class.')
+                                                            ->danger()
+                                                            ->send();
+                                                        Log::error('Error '.$e->getCode().' while attempting to load class \''.$class->name.'\'. Message: '.$e->getMessage());
+                                                    }
+                                                }
+
+                                                return $schema;
+                                            })
+                                            ->columnSpan(fn (Get $get): int => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ? 9 : 12),
+                                        Section::make('Spells')
+                                            ->schema(fn (Get $get): array => [
+                                                Hidden::make('chosen_cantrips')
+                                                    ->default('[]'),
+                                                Hidden::make('chosen_spells')
+                                                    ->default('[]'),
+                                                TextEntry::make('chosen')
+                                                    ->hiddenLabel()
+                                                    ->state(
+                                                        fn (Get $get): string => 'Spells: '.count(json_decode($get('chosen_spells') ?? '[]')).'/'.PlayerClass::find($get('id'))->preparedSpellsAtLevel($get('level')).' & '.
+                                                            'Cantrips: '.count(json_decode($get('chosen_cantrips') ?? '[]')).'/'.PlayerClass::find($get('id'))->cantripsAtLevel($get('level'))
+                                                    )
+                                                    ->beforeContent(
+                                                        Action::make('openChosenSpells')
+                                                            ->slideOver()
+                                                            ->modalSubmitActionLabel('Done')
+                                                            ->hiddenLabel()
+                                                            ->tooltip('View chosen spells')
+                                                            ->icon(Heroicon::Eye)
+                                                            ->button()
+                                                            ->schema([
+                                                                TextEntry::make('something'),
+                                                            ])
+                                                    )
+                                                    ->afterContent(
+                                                        Action::make('openAvailableSpells')
+                                                            ->slideOver()
+                                                            ->modalSubmitActionLabel('Done')
+                                                            ->hiddenLabel()
+                                                            ->tooltip('Select/Change prepared spells')
+                                                            ->icon(Heroicon::ChevronRight)
+                                                            ->button()
+                                                            ->schema(function (Get $get, Set $set): array {
+                                                                $schema = [
+                                                                    Hidden::make('activeSpellFilters'),
+                                                                    TextInput::make('searchSpells')
+                                                                        ->hiddenLabel()
+                                                                        ->placeholder('Search for a spell')
+                                                                        ->live()
+                                                                        ->suffixAction(
+                                                                            Action::make('filterSpells')
+                                                                                ->tooltip('Extra filters')
+                                                                                ->icon(Heroicon::Funnel)
                                                                                 ->schema([
-                                                                                    TextEntry::make('details')
-                                                                                        ->hiddenLabel()
-                                                                                        ->state(new HtmlString(
-                                                                                            '<b>Casting Time:</b> '.($spell->casting_time['time'] ?? '').' '.($spell->casting_time['type'] ?? '').'<br>
-                                                                                            <b>Range/Area:</b> '.($spell->arearange['range'] ?? '').' / '.($spell->arearange['area'] ?? '').'<br>
-                                                                                            <b>Components:</b> '.(implode(', ', array_map(fn ($item) => strtoupper($item), $spell->components['components'])) ?? '').(in_array('m', $spell->components['components']) ? ' ('.$spell->components['materials'].')' : '').'<br>
-                                                                                            <b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '')
-                                                                                        ))
-                                                                                        ->html(),
-                                                                                    self::getDivider(),
-                                                                                    TextEntry::make('description')
-                                                                                        ->hiddenLabel()
-                                                                                        ->state($spell->description)
-                                                                                        ->html(),
+                                                                                    Select::make('school'),
                                                                                 ])
-                                                                                ->collapsed()
-                                                                                ->secondary()
-                                                                                ->compact()
-                                                                                ->visible(fn (Get $get): bool => !$get('searchSpells') || strtolower($get('searchSpells')) == strtolower($spell->name));
-                                                                        }
-                                                                        return $schema;
-                                                                    })
-                                                                    ->fillForm(self::getAvailableSpells($get('id')))
-                                                            ),
-                                                    ])
-                                                    ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false)
-                                                    // ->columns(2),
+                                                                        ),
+                                                                ];
+
+                                                                foreach (self::getAvailableSpells($get('id')) as $id => $spell) {
+                                                                    $schema[] = Section::make($spell->name)
+                                                                        ->headerActions([
+                                                                            Action::make('addSpell'.$id.'ToList')
+                                                                                ->hiddenLabel()
+                                                                                ->icon(Heroicon::PlusCircle)
+                                                                                ->size('sm')
+                                                                                ->action(fn () => self::setSpellList($get, $set, $id)),
+                                                                        ])
+                                                                        ->description(($spell->level != 0 ? 'Level '.$spell->level.' ' : '').$spell->school->name.' '.($spell->level == 0 ? 'Cantrip' : ''))
+                                                                        ->schema([
+                                                                            TextEntry::make('details')
+                                                                                ->hiddenLabel()
+                                                                                ->state(new HtmlString(
+                                                                                    '<b>Casting Time:</b> '.($spell->casting_time['time'] ?? '').' '.($spell->casting_time['type'] ?? '').'<br>
+                                                                                    <b>Range/Area:</b> '.($spell->arearange['range'] ?? '').' / '.($spell->arearange['area'] ?? '').'<br>
+                                                                                    <b>Components:</b> '.(implode(', ', array_map(fn ($item) => strtoupper($item), $spell->components['components'])) ?? '').(in_array('m', $spell->components['components']) ? ' ('.$spell->components['materials'].')' : '').'<br>
+                                                                                    <b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '')
+                                                                                ))
+                                                                                ->html(),
+                                                                            self::getDivider(),
+                                                                            TextEntry::make('description')
+                                                                                ->hiddenLabel()
+                                                                                ->state($spell->description)
+                                                                                ->html(),
+                                                                        ])
+                                                                        ->collapsed()
+                                                                        ->secondary()
+                                                                        ->compact()
+                                                                        ->visible(fn (Get $get): bool => ! $get('searchSpells') || strtolower($get('searchSpells')) == strtolower($spell->name));
+                                                                }
+
+                                                                return $schema;
+                                                            })
+                                                            ->fillForm(self::getAvailableSpells($get('id')))
+                                                    ),
                                             ])
-                                            // ->visible(fn (array $state): bool => $state['id'] ?? false)
-                                            ->activeTab(2)
-                                            ->columnSpanFull(),
+                                            ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false)
+                                            ->columnSpan(3)
+                                            ->extraAttributes(['style' => 'position:sticky;top:80px;z-index:10']),
+                                        // ->columns(2),
                                     ])
                                     ->reorderable(false)
                                     ->collapsible()
@@ -482,22 +475,25 @@ class CharacterForm
         $set('dice_used', $state != null ? (in_array($id, $dice_used) ? $dice_used : collect($dice_used)->add($id)->toArray()) : array_values(array_filter($dice_used, fn ($item) => $item != $id)));
     }
 
-    private static function getAvailableSpells(int $classID): array {
-        $spinfo = PlayerClass::find($classID)->spell_info;
+    private static function getAvailableSpells(?int $classID): array
+    {
+        $spinfo = PlayerClass::find($classID)?->spell_info;
         $spells = [];
 
         foreach (array_merge($spinfo->spells ?? [], $spinfo->extra_spells ?? []) as $spellID) {
             $spell = Spell::find($spellID);
             $spells[$spell->id] = $spell;
         }
+
         return $spells;
     }
 
-    private static function setSpellList(Get $get, Set $set, int $spellID) {
+    private static function setSpellList(Get $get, Set $set, int $spellID)
+    {
         $array = 'chosen_'.(Spell::find($spellID)->level == 0 ? 'cantrips' : 'spells');
         $chosen = json_decode($get($array)) ?? [];
 
-        if (!in_array($spellID, $chosen)) {
+        if (! in_array($spellID, $chosen)) {
             $chosen[] = $spellID;
         } else {
             $chosen = array_flip($chosen);

@@ -15,6 +15,7 @@ class Feat extends Model
     protected $fillable = [
         'name',
         'system_version',
+        'user_id',
         'description',
         'short_desc',
         'features',

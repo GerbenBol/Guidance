@@ -36,7 +36,8 @@ class PlayerClass extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function preparedSpellsAtLevel(int $level = 1): int {
+    public function preparedSpellsAtLevel(int $level = 1): int
+    {
         $amounts = json_decode($this->spell_info->known_prepared_amounts, true);
 
         for ($i = $level; $i > 0; $i--) {
@@ -46,10 +47,12 @@ class PlayerClass extends Model
                 }
             }
         }
+
         return 0;
     }
 
-    public function cantripsAtLevel(int $level = 1): int {
+    public function cantripsAtLevel(int $level = 1): int
+    {
         $amounts = json_decode($this->spell_info->known_prepared_amounts, true);
 
         for ($i = $level; $i > 0; $i--) {
@@ -59,6 +62,7 @@ class PlayerClass extends Model
                 }
             }
         }
+
         return 0;
     }
 }
