@@ -11,7 +11,8 @@ new class extends Component implements HasForms
     use InteractsWithForms;
 
     public ?int $value;
-    public string $class;
+    public string $type;
+    public string|int $id;
     public string $name;
     public array $options = [];
 
@@ -33,7 +34,7 @@ new class extends Component implements HasForms
     }
 
     public function updatedValue(): void {
-        $this->dispatch('choiceUpdated', name: $this->name, class: $this->class, value: $this->value);
+        $this->dispatch('choiceUpdated', name: $this->name, type: $this->type, id: $this->id, value: $this->value);
     }
 };
 ?>

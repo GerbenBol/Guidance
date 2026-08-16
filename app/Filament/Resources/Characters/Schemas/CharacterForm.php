@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Characters\Schemas;
 use App\Filament\Forms\Components\ClassFeature;
 use App\Models\Character;
 use App\Models\PlayerClass;
+use App\Models\Race;
 use App\Models\Spell;
 use Exception;
 use Filament\Actions\Action;
@@ -336,9 +337,47 @@ class CharacterForm
                                                             ->tooltip('View chosen spells')
                                                             ->icon(Heroicon::Eye)
                                                             ->button()
-                                                            ->schema([
-                                                                TextEntry::make('something'),
-                                                            ])
+                                                            ->schema(function (Get $get, Set $set): array {
+                                                                $schema = [];
+                                                                $spells = array_merge(
+                                                                    json_decode($get('chosen_cantrips'), true),
+                                                                    json_decode($get('chosen_spells'), true)
+                                                                );
+
+                                                                foreach (Spell::find($spells) as $spell) {
+                                                                    $schema[] = Section::make($spell->name)
+                                                                        ->headerActions([
+                                                                            Action::make('removeSpell'.$spell->id.'ToList')
+                                                                                ->hiddenLabel()
+                                                                                ->icon(Heroicon::MinusCircle)
+                                                                                ->size('sm')
+                                                                                ->action(fn () => self::setSpellList($get, $set, $spell->id)),
+                                                                        ])
+                                                                        ->description(($spell->level != 0 ? 'Level '.$spell->level.' ' : '').$spell->school->name.' '.($spell->level == 0 ? 'Cantrip' : ''))
+                                                                        ->schema([
+                                                                            TextEntry::make('details')
+                                                                                ->hiddenLabel()
+                                                                                ->state(new HtmlString(
+                                                                                    (isset($spell->casting_time) && $spell->casting_time != '[]' ? '<b>Casting Time:</b> '.($spell->casting_time['time'] ?? '').' '.($spell->casting_time['type'] ?? '').'<br>' : '').
+                                                                                    (isset($spell->arearange) && $spell->arearange != '[]' ? '<b>Range/Area:</b> '.($spell->arearange['range'] ?? '').' / '.($spell->arearange['area'] ?? '').'<br>' : '').
+                                                                                    (isset($spell->components) && $spell->components != '[]' ? '<b>Components:</b> '.(implode(', ', array_map(fn ($item) => strtoupper($item), $spell->components['components'] ?? [])) ?? '').(in_array('m', $spell->components['components'] ?? []) ? ' ('.($spell->components['materials'] ?? '').')' : '').'<br>' : '').
+                                                                                    (isset($spell->duration) && $spell->duration != '[]' ? '<b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '') : '')
+                                                                                ))
+                                                                                ->html(),
+                                                                            self::getDivider(),
+                                                                            TextEntry::make('description')
+                                                                                ->hiddenLabel()
+                                                                                ->state($spell->description)
+                                                                                ->html(),
+                                                                        ])
+                                                                        ->collapsed()
+                                                                        ->secondary()
+                                                                        ->compact()
+                                                                        ->visible(fn (): bool => in_array($spell->id, json_decode($get('chosen_cantrips') ?? '[]', true)) || in_array($spell->id, json_decode($get('chosen_spells') ?? '[]', true) ?? []));
+                                                                }
+
+                                                                return $schema;
+                                                            })
                                                     )
                                                     ->afterContent(
                                                         Action::make('openAvailableSpells')
@@ -370,7 +409,7 @@ class CharacterForm
                                                                         ->headerActions([
                                                                             Action::make('addSpell'.$id.'ToList')
                                                                                 ->hiddenLabel()
-                                                                                ->icon(Heroicon::PlusCircle)
+                                                                                ->icon(fn (): Heroicon => in_array($spell->id, json_decode($get('chosen_cantrips') ?? '[]', true)) || in_array($spell->id, json_decode($get('chosen_spells') ?? '[]', true) ?? []) ? Heroicon::MinusCircle : Heroicon::PlusCircle)
                                                                                 ->size('sm')
                                                                                 ->action(fn () => self::setSpellList($get, $set, $id)),
                                                                         ])
@@ -379,10 +418,10 @@ class CharacterForm
                                                                             TextEntry::make('details')
                                                                                 ->hiddenLabel()
                                                                                 ->state(new HtmlString(
-                                                                                    '<b>Casting Time:</b> '.($spell->casting_time['time'] ?? '').' '.($spell->casting_time['type'] ?? '').'<br>
-                                                                                    <b>Range/Area:</b> '.($spell->arearange['range'] ?? '').' / '.($spell->arearange['area'] ?? '').'<br>
-                                                                                    <b>Components:</b> '.(implode(', ', array_map(fn ($item) => strtoupper($item), $spell->components['components'])) ?? '').(in_array('m', $spell->components['components']) ? ' ('.$spell->components['materials'].')' : '').'<br>
-                                                                                    <b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '')
+                                                                                    (isset($spell->casting_time) && $spell->casting_time != '[]' ? '<b>Casting Time:</b> '.($spell->casting_time['time'] ?? '').' '.($spell->casting_time['type'] ?? '').'<br>' : '').
+                                                                                    (isset($spell->arearange) && $spell->arearange != '[]' ? '<b>Range/Area:</b> '.($spell->arearange['range'] ?? '').' / '.($spell->arearange['area'] ?? '').'<br>' : '').
+                                                                                    (isset($spell->components) && $spell->components != '[]' ? '<b>Components:</b> '.(implode(', ', array_map(fn ($item) => strtoupper($item), $spell->components['components'] ?? [])) ?? '').(in_array('m', $spell->components['components'] ?? []) ? ' ('.($spell->components['materials'] ?? '').')' : '').'<br>' : '').
+                                                                                    (isset($spell->duration) && $spell->duration != '[]' ? '<b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '') : '')
                                                                                 ))
                                                                                 ->html(),
                                                                             self::getDivider(),
@@ -405,7 +444,6 @@ class CharacterForm
                                             ->visible(fn (Get $get): bool => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ?? false)
                                             ->columnSpan(3)
                                             ->extraAttributes(['style' => 'position:sticky;top:80px;z-index:10']),
-                                        // ->columns(2),
                                     ])
                                     ->reorderable(false)
                                     ->collapsible()
@@ -413,26 +451,43 @@ class CharacterForm
                                     ->expandAllAction(fn (Action $action): Action => $action->visible(false))
                                     ->deleteAction(fn (Action $action): Action => $action->requiresConfirmation())
                                     ->addActionLabel('Add class')
-                                    ->itemLabel(fn (array $state): string => $state['level'].' '.PlayerClass::find($state['id'])?->name) // + ' / ' + subclass
+                                    ->itemLabel(fn (array $state): string => 'Level '.$state['level'].' '.PlayerClass::find($state['id'])?->name) // + ' / ' + subclass
                                     ->columns(12),
                             ]),
                         Step::make('Race')
                             ->icon(Heroicon::OutlinedAcademicCap)
                             ->completedIcon(Heroicon::AcademicCap)
                             ->schema([
-                                // Select::make('id')
-                                //     ->options([])
-                                //     ->relationship('race', 'name')
-                                //     ->searchable(),
+                                Select::make('race_id')
+                                    ->hiddenLabel()
+                                    ->prefix('Race:')
+                                    ->relationship('race', 'name')
+                                    ->searchable()
+                                    ->preload(),
+                                Section::make('Features')
+                                    ->schema(function (Get $get, Set $set): array {
+                                        $schema = [];
+
+                                        foreach (Race::find($get('race_id'))->features as $feature) {
+                                            $schema[] = ClassFeature::make($feature['name'])
+                                                ->hiddenLabel()
+                                                ->referesToFeature($feature)
+                                                ->allMechanics($feature['mechanics']);
+                                        }
+
+                                        return $schema;
+                                    }),
                             ]),
                         Step::make('Background')
                             ->icon(Heroicon::OutlinedAcademicCap)
                             ->completedIcon(Heroicon::AcademicCap)
                             ->schema([
-                                // Select::make('id')
-                                //     ->options([])
-                                //     ->relationship('background', 'name')
-                                //     ->searchable(),
+                                Select::make('background_id')
+                                    ->hiddenLabel()
+                                    ->prefix('Background:')
+                                    ->relationship('background', 'name')
+                                    ->searchable()
+                                    ->preload(),
                             ]),
                         Step::make('Abilities')
                             ->icon(Heroicon::OutlinedAcademicCap)
@@ -445,6 +500,7 @@ class CharacterForm
                     ];
                 })
                     ->columnSpanFull()
+                    ->startOnStep(2) // temp
                     ->skippable(),
             ])
             ->columns(12);

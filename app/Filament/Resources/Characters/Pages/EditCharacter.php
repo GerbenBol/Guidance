@@ -54,8 +54,12 @@ class EditCharacter extends EditRecord
         ];
     }
 
-    public function onChoiceUpdate(string $name, string $class, mixed $value): void
+    public function onChoiceUpdate(string $name, string $type, string|int $id, mixed $value): void
     {
-        $this->data['classes'][$class]['mechanics'][$name] = $value;
+        if ($type == 'class') {
+            $this->data['classes'][$id]['mechanics'][$name] = $value;
+        } elseif ($type == 'race') {
+            dd($this->data['race_options']);
+        }
     }
 }

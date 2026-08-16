@@ -4,7 +4,7 @@
 >
     @php
         $key = $getKey();
-        $classId = explode('.', $key)[2];
+        $classId = explode('.', $key)[1] == 'classes' ? explode('.', $key)[2] : '';
         $feature = $field->getFeature();
         $allMechanics = $field->getMechanics();
         $pendingChoices = $totalChoices = 0;
@@ -43,15 +43,29 @@
         @foreach ($feature['mechanics'] as $id => $mechanic)
             @if (isset($mechanic['choice']) && $mechanic['choice'])
                 <br>
-                @livewire('select-choice', [
-                    'name' => $mechanic['grant'].$id,
-                    'options' => match ($mechanic['grant']) {
-                        'skill' => App\Models\Skill::find($mechanic['options'])->pluck('name', 'id')->toArray(),
-                        default => ['Couldn\'t find corresponding records.'],
-                    },
-                    'class' => $classId,
-                    'value' => $allMechanics[$mechanic['grant'].$id] ?? null,
-                ], key($classId.'-'.$feature['name'].'-'.$mechanic['grant'].$id))
+                @if ($classId != '')
+                    @livewire('select-choice', [
+                        'name' => $mechanic['grant'].$id,
+                        'options' => match ($mechanic['grant']) {
+                            'skill' => App\Models\Skill::find($mechanic['options'])->pluck('name', 'id')->toArray(),
+                            default => [0 => 'Couldn\'t find corresponding records.'],
+                        },
+                        'type' => 'class',
+                        'id' => $classId,
+                        'value' => $allMechanics[$mechanic['grant'].$id] ?? null,
+                    ], key($classId.'-'.$feature['name'].'-'.$mechanic['grant'].$id))
+                @else
+                    @livewire('select-choice', [
+                        'name' => $mechanic['grant'].$id,
+                        'options' => match ($mechanic['grant']) {
+                            'skill' => App\Models\Skill::find($mechanic['options'])->pluck('name', 'id')->toArray(),
+                            default => [0 => 'Couldn\'t find corresponding records.'],
+                        },
+                        'type' => 'race',
+                        'id' => '0',
+                        'value' => $allMechanics[$mechanic['grant'].$id] ?? null,
+                    ], key($feature['name'].'-'.$mechanic['grant'].$id))
+                @endif
             @endif
         @endforeach
     </x-filament::section>

@@ -39,6 +39,7 @@ class EditSpell extends EditRecord
         $data['amount_of_duration'] = $data['duration']['duration'] ?? '';
         $data['concentration'] = $data['duration']['concentration'] ?? '';
         $data['duration'] = $data['duration']['type'] ?? '';
+
         return parent::mutateFormDataBeforeFill($data);
     }
 
@@ -61,7 +62,7 @@ class EditSpell extends EditRecord
             'type' => $data['duration'],
             'concentration' => $data['concentration'],
         ];
-        
+
         return parent::mutateFormDataBeforeSave($data);
     }
 }

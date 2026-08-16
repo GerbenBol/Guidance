@@ -6,7 +6,6 @@ use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Character extends Model
 {
@@ -44,14 +43,14 @@ class Character extends Model
         return $this->belongsTo(User::class, 'player_id');
     }
 
-    public function race(): HasOne
+    public function race(): BelongsTo
     {
-        return $this->hasOne(Race::class, 'race_id');
+        return $this->belongsTo(Race::class);
     }
 
-    public function background(): HasOne
+    public function background(): BelongsTo
     {
-        return $this->hasOne(Background::class, 'background_id');
+        return $this->belongsTo(Background::class);
     }
 
     public function classes(): Collection
