@@ -3,11 +3,11 @@
 namespace App\Filament\Resources\Characters\Schemas;
 
 use App\Filament\Forms\Components\ClassFeature;
+use App\Models\Background;
 use App\Models\Character;
 use App\Models\PlayerClass;
 use App\Models\Race;
 use App\Models\Spell;
-use Exception;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -303,7 +303,7 @@ class CharacterForm
                                                                     ->allMechanics($state['mechanics'] ?? []);
                                                             }
                                                         }
-                                                    } catch (Exception $e) {
+                                                    } catch (\Exception $e) {
                                                         $set('id', null);
                                                         Notification::make('classLoadingFailed')
                                                             ->title('Loading \''.$class->name.'\' failed')
@@ -516,27 +516,31 @@ class CharacterForm
                                     ),
                                 Section::make('Features')
                                     ->schema(function (array $state, Get $get, Set $set): array {
-                                        $race = Race::find($get('race_id'));
-                                        $schema = [];
+                                        if ($get('race_id')) {
+                                            $race = Race::find($get('race_id'));
+                                            $schema = [];
 
-                                        try {
-                                            foreach ($race->features as $feature) {
-                                                $schema[] = ClassFeature::make($feature['name'])
-                                                    ->hiddenLabel()
-                                                    ->referesToFeature($feature)
-                                                    ->allMechanics($state['race_options'] ?? []);
+                                            try {
+                                                foreach ($race->features as $feature) {
+                                                    $schema[] = ClassFeature::make($feature['name'])
+                                                        ->hiddenLabel()
+                                                        ->referesToFeature($feature)
+                                                        ->allMechanics($state['race_options'] ?? []);
+                                                }
+                                            } catch (\Exception $e) {
+                                                $set('race_id', null);
+                                                Notification::make('raceLoadingFailed')
+                                                    ->title('Loading \''.$race->name.'\' failed')
+                                                    ->body('The loading of the race failed, this is likely because the race is not ready for use yet. Please try a different race.')
+                                                    ->danger()
+                                                    ->send();
+                                                Log::error('Error '.$e->getCode().' while attempting to load race \''.$race->name.'\'. Message: '.$e->getMessage());
                                             }
-                                        } catch (Exception $e) {
-                                            $set('id', null);
-                                            Notification::make('raceLoadingFailed')
-                                                ->title('Loading \''.$race->name.'\' failed')
-                                                ->body('The loading of the race failed, this is likely because the class is not ready for use yet. Please try a different class.')
-                                                ->danger()
-                                                ->send();
-                                            Log::error('Error '.$e->getCode().' while attempting to load race \''.$race->name.'\'. Message: '.$e->getMessage());
+
+                                            return $schema;
                                         }
 
-                                        return $schema;
+                                        return [];
                                     }),
                             ]),
                         Step::make('Background')
@@ -548,7 +552,79 @@ class CharacterForm
                                     ->prefix('Background:')
                                     ->relationship('background', 'name')
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->suffixAction(
+                                        Action::make('viewBackgrounds')
+                                            ->tooltip('View available backgrounds')
+                                            ->icon(Heroicon::Eye)
+                                            ->schema(function (Get $get, Set $set): array {
+                                                $schema = [
+                                                    TextInput::make('searchBackgrounds')
+                                                        ->hiddenLabel()
+                                                        ->placeholder('Search for a background')
+                                                        ->live(),
+                                                ];
+
+                                                foreach (Background::all() as $bg) {
+                                                    $$bg = [];
+
+                                                    // foreach ($bg->features)
+
+                                                    $schema[] = Section::make($bg->name)
+                                                        ->description($bg->short_desc)
+                                                        ->headerActions([
+                                                            Action::make('addBackground'.$bg->id)
+                                                                ->hiddenLabel()
+                                                                ->tooltip(fn (): string => $get('background_id') == $bg->id ? 'Active background' : 'Choose background')
+                                                                ->icon(fn (): Heroicon => $get('background_id') == $bg->id ? Heroicon::CheckCircle : Heroicon::Check)
+                                                                ->size('sm')
+                                                                ->disabled(fn (): bool => $get('background_id') == $bg->id)
+                                                                ->action(fn () => $set('background_id', $bg->id)),
+                                                        ])
+                                                        ->schema([
+                                                            TextEntry::make('description')
+                                                                ->hiddenLabel()
+                                                                ->state($bg->description),
+                                                            Section::make('Proficiencies, Feat(s) & Equipment')
+                                                                ->schema($$bg)
+                                                                ->collapsed(),
+                                                        ])
+                                                        ->collapsed()
+                                                        ->secondary()
+                                                        ->visible(fn (Get $get): bool => ! $get('searchBackgrounds') || str_contains(strtolower($bg->name), strtolower($get('searchBackgrounds'))));
+                                                }
+
+                                                return $schema;
+                                            })
+                                    ),
+                                Section::make('Features, Feat & Equipment')
+                                    ->schema(function (array $state, Get $get, Set $set): array {
+                                        if ($get('background_id')) {
+                                            $bg = Background::find($get('background_id'));
+                                            $schema = [];
+
+                                            try {
+                                                foreach ($bg->profs as $feature) {
+                                                    $schema[] = ClassFeature::make($feature['name'])
+                                                        ->hiddenLabel()
+                                                        ->referesToFeature($feature)
+                                                        ->allMechanics($state['background_options'] ?? []);
+                                                }
+                                            } catch (\Exception $e) {
+                                                $set('background_id', null);
+                                                Notification::make('backgroundLoadingFailed')
+                                                    ->title('Loading \''.$bg->name.'\' failed')
+                                                    ->body('The loading of the background failed, this is likely because the background is not ready for use yet. Please try a different background.')
+                                                    ->danger()
+                                                    ->send();
+                                                Log::error('Error '.$e->getCode().' while attempting to load background \''.$bg->name.'\'. Message: '.$e->getMessage());
+                                            }
+
+                                            return $schema;
+                                        }
+
+                                        return [];
+                                    }),
                             ]),
                         Step::make('Abilities')
                             ->icon(Heroicon::OutlinedAcademicCap)
