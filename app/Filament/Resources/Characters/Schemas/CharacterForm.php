@@ -316,6 +316,7 @@ class CharacterForm
 
                                                 return $schema;
                                             })
+                                            ->collapsible()
                                             ->columnSpan(fn (Get $get): int => PlayerClass::find($get('id'))?->spell_info?->can_cast_spells ? 9 : 12),
                                         Section::make('Spells')
                                             ->schema(fn (Get $get): array => [
@@ -433,7 +434,7 @@ class CharacterForm
                                                                         ->collapsed()
                                                                         ->secondary()
                                                                         ->compact()
-                                                                        ->visible(fn (Get $get): bool => ! $get('searchSpells') || strtolower($get('searchSpells')) == strtolower($spell->name));
+                                                                        ->visible(fn (Get $get): bool => ! $get('searchSpells') || str_contains(strtolower($spell->name), strtolower($get('searchSpells'))));
                                                                 }
 
                                                                 return $schema;
@@ -463,16 +464,76 @@ class CharacterForm
                                     ->prefix('Race:')
                                     ->relationship('race', 'name')
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->suffixAction(
+                                        Action::make('viewRaces')
+                                            ->tooltip('View available races')
+                                            ->icon(Heroicon::Eye)
+                                            ->schema(function (Get $get, Set $set): array {
+                                                $schema = [
+                                                    TextInput::make('searchRaces')
+                                                        ->hiddenLabel()
+                                                        ->placeholder('Search for a race')
+                                                        ->live(),
+                                                ];
+
+                                                foreach (Race::all() as $race) {
+                                                    $$race = [];
+
+                                                    foreach ($race->features as $feature) {
+                                                        $$race[] = TextEntry::make($feature['name'])
+                                                            ->hiddenLabel()
+                                                            ->state(new HtmlString('<b>'.$feature['name'].'</b><br>'.$feature['description']))
+                                                            ->html();
+                                                    }
+
+                                                    $schema[] = Section::make($race->name)
+                                                        ->description($race->short_desc)
+                                                        ->headerActions([
+                                                            Action::make('addRace'.$race->id)
+                                                                ->hiddenLabel()
+                                                                ->tooltip(fn (): string => $get('race_id') == $race->id ? 'Active race' : 'Choose race')
+                                                                ->icon(fn (): Heroicon => $get('race_id') == $race->id ? Heroicon::CheckCircle : Heroicon::Check)
+                                                                ->size('sm')
+                                                                ->disabled(fn (): bool => $get('race_id') == $race->id)
+                                                                ->action(fn () => $set('race_id', $race->id)),
+                                                        ])
+                                                        ->schema([
+                                                            TextEntry::make('description')
+                                                                ->hiddenLabel()
+                                                                ->state($race->description),
+                                                            Section::make('Features')
+                                                                ->schema($$race)
+                                                                ->collapsed(),
+                                                        ])
+                                                        ->collapsed()
+                                                        ->secondary()
+                                                        ->visible(fn (Get $get): bool => ! $get('searchRaces') || str_contains(strtolower($race->name), strtolower($get('searchRaces'))));
+                                                }
+
+                                                return $schema;
+                                            })
+                                    ),
                                 Section::make('Features')
-                                    ->schema(function (Get $get, Set $set): array {
+                                    ->schema(function (array $state, Get $get, Set $set): array {
+                                        $race = Race::find($get('race_id'));
                                         $schema = [];
 
-                                        foreach (Race::find($get('race_id'))->features as $feature) {
-                                            $schema[] = ClassFeature::make($feature['name'])
-                                                ->hiddenLabel()
-                                                ->referesToFeature($feature)
-                                                ->allMechanics($feature['mechanics']);
+                                        try {
+                                            foreach ($race->features as $feature) {
+                                                $schema[] = ClassFeature::make($feature['name'])
+                                                    ->hiddenLabel()
+                                                    ->referesToFeature($feature)
+                                                    ->allMechanics($state['race_options'] ?? []);
+                                            }
+                                        } catch (Exception $e) {
+                                            $set('id', null);
+                                            Notification::make('raceLoadingFailed')
+                                                ->title('Loading \''.$race->name.'\' failed')
+                                                ->body('The loading of the race failed, this is likely because the class is not ready for use yet. Please try a different class.')
+                                                ->danger()
+                                                ->send();
+                                            Log::error('Error '.$e->getCode().' while attempting to load race \''.$race->name.'\'. Message: '.$e->getMessage());
                                         }
 
                                         return $schema;
@@ -500,7 +561,7 @@ class CharacterForm
                     ];
                 })
                     ->columnSpanFull()
-                    ->startOnStep(2) // temp
+                    ->startOnStep(3) // temp
                     ->skippable(),
             ])
             ->columns(12);

@@ -27,6 +27,7 @@ class EditCharacter extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $data['race_options'] = $this->data['race_options'];
         $data['classes'] = [];
         $data['extra_info'] = [
             'use_fixed_hp' => false,
@@ -59,7 +60,7 @@ class EditCharacter extends EditRecord
         if ($type == 'class') {
             $this->data['classes'][$id]['mechanics'][$name] = $value;
         } elseif ($type == 'race') {
-            dd($this->data['race_options']);
+            $this->data['race_options'][$name] = $value;
         }
     }
 }

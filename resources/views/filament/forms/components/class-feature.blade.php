@@ -28,7 +28,7 @@
         }
     </style>
 
-    <x-filament::section class="{{ $pendingChoices > 0 ? 'choice-pending' : '' }}" secondary collapsible {{-- collapsed --}}>
+    <x-filament::section class="{{ $pendingChoices > 0 ? 'choice-pending' : '' }}" secondary collapsible collapsed>
         <x-slot name="heading">
             {{ $feature['name'] }}
             <span style="font-size:.8rem">
