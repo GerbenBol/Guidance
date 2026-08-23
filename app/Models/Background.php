@@ -15,7 +15,7 @@ class Background extends Model
     protected $fillable = [
         'name',
         'system_version',
-        // 'short_desc',
+        'short_desc',
         'description',
         'profs',
         'feats',
@@ -24,7 +24,7 @@ class Background extends Model
     ];
 
     protected $casts = [
-        'skill_profs' => 'array',
+        'profs' => 'array',
         'feats' => 'array',
         'equipment' => 'array',
     ];

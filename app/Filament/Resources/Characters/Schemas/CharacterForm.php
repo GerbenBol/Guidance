@@ -7,9 +7,11 @@ use App\Models\Background;
 use App\Models\Character;
 use App\Models\PlayerClass;
 use App\Models\Race;
+use App\Models\Skill;
 use App\Models\Spell;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -17,6 +19,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -483,7 +486,7 @@ class CharacterForm
                                                     foreach ($race->features as $feature) {
                                                         $$race[] = TextEntry::make($feature['name'])
                                                             ->hiddenLabel()
-                                                            ->state(new HtmlString('<b>'.$feature['name'].'</b><br>'.$feature['description']))
+                                                            ->state('<b>'.$feature['name'].'</b><br>'.$feature['description'])
                                                             ->html();
                                                     }
 
@@ -541,7 +544,8 @@ class CharacterForm
                                         }
 
                                         return [];
-                                    }),
+                                    })
+                                    ->secondary(),
                             ]),
                         Step::make('Background')
                             ->icon(Heroicon::OutlinedAcademicCap)
@@ -566,9 +570,39 @@ class CharacterForm
                                                 ];
 
                                                 foreach (Background::all() as $bg) {
-                                                    $$bg = [];
+                                                    $$bg = 'Proficiencies: ';
 
-                                                    // foreach ($bg->features)
+                                                    foreach (collect($bg->profs)->sortBy('granted')->values()->toArray() as $prof) {
+                                                        if ($prof['granted'] == 0) {
+                                                            $$bg .= match ($prof['type']) {
+                                                                default => $prof['options'],
+                                                                'skill' => Skill::find($prof['options'])?->name
+                                                            }.', ';
+                                                        } elseif ($prof['granted'] == 1) {
+                                                            $$bg .= '<br>Choose one from: ';
+
+                                                            foreach ($prof['options'] as $opt) {
+                                                                $$bg .= match ($prof['type']) {
+                                                                    default => $opt,
+                                                                    'skill' => Skill::find($opt)?->name
+                                                                }.', ';
+                                                            }
+                                                        }
+                                                    }
+                                                    $$bg = substr($$bg, 0, strlen($$bg) - 2).'<br><br>Feat(s): ';
+
+                                                    foreach (collect($bg->profs)->sortBy('granted')->values()->toArray() as $feat) {
+                                                        if ($feat['granted'] == 0) {
+                                                            $$bg .= $feat['options'].', '; // make feat model thing
+                                                        } elseif ($feat['granted'] == 1) {
+                                                            $$bg .= '<br>Choose one from: ';
+
+                                                            foreach ($feat['options'] as $opt) {
+                                                                $$bg .= $opt.', '; // feat model
+                                                            }
+                                                        }
+                                                    }
+                                                    $$bg = substr($$bg, 0, strlen($$bg) - 2).'<br><br>Equipment:<br>';
 
                                                     $schema[] = Section::make($bg->name)
                                                         ->description($bg->short_desc)
@@ -586,7 +620,12 @@ class CharacterForm
                                                                 ->hiddenLabel()
                                                                 ->state($bg->description),
                                                             Section::make('Proficiencies, Feat(s) & Equipment')
-                                                                ->schema($$bg)
+                                                                ->schema([
+                                                                    TextEntry::make('pfe')
+                                                                        ->hiddenLabel()
+                                                                        ->state($$bg)
+                                                                        ->html(),
+                                                                ])
                                                                 ->collapsed(),
                                                         ])
                                                         ->collapsed()
@@ -597,18 +636,117 @@ class CharacterForm
                                                 return $schema;
                                             })
                                     ),
-                                Section::make('Features, Feat & Equipment')
+                                Section::make('Proficiencies, Feat(s) & Equipment')
                                     ->schema(function (array $state, Get $get, Set $set): array {
                                         if ($get('background_id')) {
                                             $bg = Background::find($get('background_id'));
                                             $schema = [];
 
                                             try {
-                                                foreach ($bg->profs as $feature) {
-                                                    $schema[] = ClassFeature::make($feature['name'])
-                                                        ->hiddenLabel()
-                                                        ->referesToFeature($feature)
-                                                        ->allMechanics($state['background_options'] ?? []);
+                                                $profs = [];
+                                                $sortedProfs = collect($bg->profs)->sortBy('granted')->values()->toArray();
+
+                                                foreach ($sortedProfs as $prof) {
+                                                    if ($prof['granted'] == 0) {
+                                                        $profs[] = match ($prof['type']) {
+                                                            default => $prof['options'],
+                                                            'skill' => Skill::find($prof['options'])?->name
+                                                        };
+                                                    } else {
+                                                        break;
+                                                    }
+                                                }
+                                                $schema[] = TextEntry::make('profs')
+                                                    ->hiddenLabel()
+                                                    ->state('Proficiencies: '.implode(', ', $profs));
+                                                $sortedProfs = collect($bg->profs)->sortByDesc('granted')->values()->toArray();
+
+                                                foreach ($sortedProfs as $id => $prof) {
+                                                    if ($prof['granted'] == 1) {
+                                                        $schema[] = Livewire::make('select-choice', [
+                                                            'name' => $prof['type'].$id,
+                                                            'options' => match ($prof['type']) {
+                                                                default => [0 => 'Couldn\'t find corresponding records.'],
+                                                                'skill' => Skill::find($prof['options'])->pluck('name', 'id')->toArray()
+                                                            },
+                                                            'type' => 'bg',
+                                                            'id' => '0',
+                                                            'value' => $state['background_options'][$prof['type'].$id] ?? null,
+                                                        ])
+                                                            ->key('bg-prof-'.$id);
+                                                    } else {
+                                                        break;
+                                                    }
+                                                }
+                                                $schema[] = self::getDivider();
+                                                $feats = [];
+                                                $sortedFeats = collect($bg->feats)->sortBy('granted')->values()->toArray();
+
+                                                foreach ($sortedFeats as $feat) {
+                                                    if ($feat['granted'] == 0) {
+                                                        $feats[] = $feat['options'];
+                                                    } else {
+                                                        break;
+                                                    }
+                                                }
+                                                $schema[] = TextEntry::make('feats')
+                                                    ->hiddenLabel()
+                                                    ->state('Feats: '.implode(', ', $feats));
+                                                $sortedFeats = collect($bg->feats)->sortByDesc('granted')->values()->toArray();
+
+                                                foreach ($sortedFeats as $id => $feat) {
+                                                    if ($feat['granted'] == 1) {
+                                                        $schema[] = Livewire::make('select-choice', [
+                                                            'name' => 'feat'.$id,
+                                                            'options' => [$feat['options']],
+                                                            'type' => 'bg',
+                                                            'id' => '0',
+                                                            'value' => $state['background_options']['feat'.$id] ?? null,
+                                                        ])
+                                                            ->key('bg-feat-'.$id);
+                                                    } else {
+                                                        break;
+                                                    }
+                                                }
+                                                $schema[] = self::getDivider();
+                                                $equipment = [];
+
+                                                foreach ($bg->equipment as $id => $option) {
+                                                    $$id = chr(65 + $id).': (';
+
+                                                    foreach ($option['items'] as $item) {
+                                                        $$id .= match ($item['type']) {
+                                                            'gp' => $item['amount'].' GP',
+                                                            'item' => $item['amount'].' '.$item['item'],
+                                                            'item-choice' => $item['amount'].' '.implode(' or ', $item['items']),
+                                                            'pack' => $item['name'],
+                                                            default => '',
+                                                        }.', ';
+                                                    }
+                                                    $equipment[$id] = substr($$id, 0, strlen($$id) - 2).')';
+                                                }
+                                                $schema[] = Radio::make('equipment')
+                                                    ->label('Equipment:')
+                                                    ->live()
+                                                    ->options($equipment);
+
+                                                foreach ($bg->equipment as $id => $option) {
+                                                    foreach ($option['items'] as $opt => $item) {
+                                                        if ($item['type'] == 'item-choice') {
+                                                            $items = [];
+
+                                                            foreach ($item['items'] as $i) {
+                                                                $items[$i] = $i; // Item::find($i)->name
+                                                            }
+
+                                                            $schema[] = Select::make($id.'-item-'.$opt)
+                                                                ->hiddenLabel()
+                                                                ->prefix('Choose an Item')
+                                                                ->options($items)
+                                                                ->searchable()
+                                                                ->visible(fn (Get $get): bool => $get('equipment') == $id ?? false);
+                                                        }
+                                                    }
                                                 }
                                             } catch (\Exception $e) {
                                                 $set('background_id', null);
@@ -624,7 +762,8 @@ class CharacterForm
                                         }
 
                                         return [];
-                                    }),
+                                    })
+                                    ->secondary(),
                             ]),
                         Step::make('Abilities')
                             ->icon(Heroicon::OutlinedAcademicCap)

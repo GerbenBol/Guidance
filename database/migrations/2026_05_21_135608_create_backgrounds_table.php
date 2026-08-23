@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('system_version')->nullable();
-            // $table->longText('short_desc')->nullable();
+            $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
             $table->json('profs')->nullable();
             $table->json('feats')->nullable();
