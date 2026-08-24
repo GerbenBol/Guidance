@@ -147,7 +147,7 @@ class ClassForm
                                                         Action::make('setDefault')
                                                             ->tooltip('Set default (4, 8, 12, 16)')
                                                             ->icon(Heroicon::Backward)
-                                                            ->action(fn (Set $set) => $set('asi_lvls', [4, 6, 12, 16]))
+                                                            ->action(fn (Set $set) => $set('asi_lvls', [4, 8, 12, 16]))
                                                     ),
                                             ])
                                             ->collapsible()
