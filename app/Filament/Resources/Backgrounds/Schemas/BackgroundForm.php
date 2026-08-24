@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Backgrounds\Schemas;
 
+use App\Models\Feat;
 use App\Models\Skill;
 use App\Services\FormService;
 use Filament\Forms\Components\Hidden;
@@ -94,11 +95,10 @@ class BackgroundForm
                                                         ->default(0)
                                                         ->options(['Granted', 'Choose One']),
                                                     Select::make('options')
-                                                        // ->relationship('feats', 'name')
                                                         ->prefix(fn (Get $get): string => ! $get('granted') ? 'Option' : 'Options')
                                                         ->multiple(fn (Get $get): bool => $get('granted') == 1 ?? false)
                                                         ->searchable()
-                                                        ->options([]), // feats
+                                                        ->options(Feat::getAllRecords('publicOrOwned')),
                                                 ])
                                                     ->columns(2),
                                             ]),

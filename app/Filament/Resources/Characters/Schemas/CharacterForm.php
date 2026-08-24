@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Characters\Schemas;
 use App\Filament\Forms\Components\ClassFeature;
 use App\Models\Background;
 use App\Models\Character;
+use App\Models\Feat;
 use App\Models\PlayerClass;
 use App\Models\Race;
 use App\Models\Skill;
@@ -574,10 +575,11 @@ class CharacterForm
 
                                                     foreach (collect($bg->profs)->sortBy('granted')->values()->toArray() as $prof) {
                                                         if ($prof['granted'] == 0) {
+                                                            $$bg .= substr($$bg, strlen($$bg) - 2) == ': ' ? '' : ', ';
                                                             $$bg .= match ($prof['type']) {
                                                                 default => $prof['options'],
                                                                 'skill' => Skill::find($prof['options'])?->name
-                                                            }.', ';
+                                                            };
                                                         } elseif ($prof['granted'] == 1) {
                                                             $$bg .= '<br>Choose one from: ';
 
@@ -587,22 +589,40 @@ class CharacterForm
                                                                     'skill' => Skill::find($opt)?->name
                                                                 }.', ';
                                                             }
+                                                            $$bg = substr($$bg, 0, strlen($$bg) - 2);
                                                         }
                                                     }
-                                                    $$bg = substr($$bg, 0, strlen($$bg) - 2).'<br><br>Feat(s): ';
+                                                    $$bg .= '<br><br>Feat(s): ';
 
-                                                    foreach (collect($bg->profs)->sortBy('granted')->values()->toArray() as $feat) {
+                                                    foreach (collect($bg->feats)->sortBy('granted')->values()->toArray() as $feat) {
                                                         if ($feat['granted'] == 0) {
-                                                            $$bg .= $feat['options'].', '; // make feat model thing
+                                                            $$bg .= substr($$bg, strlen($$bg) - 2) == ': ' ? '' : ' ,';
+                                                            $$bg .= Feat::find($feat['options'])?->name;
                                                         } elseif ($feat['granted'] == 1) {
                                                             $$bg .= '<br>Choose one from: ';
 
                                                             foreach ($feat['options'] as $opt) {
-                                                                $$bg .= $opt.', '; // feat model
+                                                                $$bg .= Feat::find($opt)?->name.', ';
                                                             }
+                                                            $$bg = substr($$bg, 0, strlen($$bg) - 2);
                                                         }
                                                     }
-                                                    $$bg = substr($$bg, 0, strlen($$bg) - 2).'<br><br>Equipment:<br>';
+                                                    $$bg .= '<br><br>Equipment:<br>';
+
+                                                    foreach ($bg->equipment as $id => $option) {
+                                                        $$bg .= chr(65 + $id).'. ';
+
+                                                        foreach ($option['items'] as $item) {
+                                                            $$bg .= match ($item['type']) {
+                                                                'gp' => $item['amount'].' GP',
+                                                                'item' => $item['amount'].' '.$item['item'],
+                                                                'item-choice' => $item['amount'].' '.implode(' or ', $item['items']),
+                                                                'pack' => $item['name'],
+                                                                default => ''
+                                                            }.', ';
+                                                        }
+                                                        $$bg = substr($$bg, 0, strlen($$bg) - 2).'<br>';
+                                                    }
 
                                                     $schema[] = Section::make($bg->name)
                                                         ->description($bg->short_desc)
@@ -684,7 +704,7 @@ class CharacterForm
 
                                                 foreach ($sortedFeats as $feat) {
                                                     if ($feat['granted'] == 0) {
-                                                        $feats[] = $feat['options'];
+                                                        $feats[] = Feat::find($feat['options'])?->name;
                                                     } else {
                                                         break;
                                                     }
@@ -696,9 +716,14 @@ class CharacterForm
 
                                                 foreach ($sortedFeats as $id => $feat) {
                                                     if ($feat['granted'] == 1) {
+                                                        $options = [];
+
+                                                        foreach ($feat['options'] as $opt => $val) {
+                                                            $options[] = Feat::find($val)?->name;
+                                                        }
                                                         $schema[] = Livewire::make('select-choice', [
                                                             'name' => 'feat'.$id,
-                                                            'options' => [$feat['options']],
+                                                            'options' => $options,
                                                             'type' => 'bg',
                                                             'id' => '0',
                                                             'value' => $state['background_options']['feat'.$id] ?? null,
