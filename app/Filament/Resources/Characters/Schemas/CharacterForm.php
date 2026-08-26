@@ -793,7 +793,25 @@ class CharacterForm
                         Step::make('Abilities')
                             ->icon(Heroicon::OutlinedAcademicCap)
                             ->completedIcon(Heroicon::AcademicCap)
-                            ->schema([]),
+                            ->schema([
+                                Select::make('gen_method')
+                                    ->hiddenLabel()
+                                    ->prefix('Generation Method')
+                                    ->live()
+                                    ->native(false)
+                                    ->options([
+                                        'man' => 'Manual/Rolled',
+                                        'buy' => 'Point Buy',
+                                        'std' => 'Standard Array',
+                                    ])
+                                    ->default('man'), // temp
+                                Section::make('Scores')
+                                    ->schema([
+                                        //
+                                    ])
+                                    ->secondary()
+                                    ->hidden(fn (Get $get): bool => !$get('gen_method'))
+                            ]),
                         Step::make('Equipment')
                             ->icon(Heroicon::OutlinedAcademicCap)
                             ->completedIcon(Heroicon::AcademicCap)
@@ -801,7 +819,7 @@ class CharacterForm
                     ];
                 })
                     ->columnSpanFull()
-                    ->startOnStep(3) // temp
+                    ->startOnStep(4) // temp
                     ->skippable(),
             ])
             ->columns(12);
