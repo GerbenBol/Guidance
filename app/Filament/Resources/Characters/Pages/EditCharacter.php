@@ -29,7 +29,7 @@ class EditCharacter extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $data['race_options'] = $this->data['race_options'];
-        $data['background_options'] = $this->data['background_options'] + ['equip' => $data['equipment']];
+        $data['background_options'] = $this->data['background_options'] ?? [] + ['equip' => $data['equipment'] ?? []];
         $data['classes'] = [];
         $data['extra_info'] = [
             'use_fixed_hp' => false,
@@ -47,22 +47,27 @@ class EditCharacter extends EditRecord
             }
         }
 
-        foreach (Background::find($data['background_id'])->equipment[$data['equipment']]['items'] as $id => $item) {
+        foreach (Background::find($data['background_id'])?->equipment[$data['equipment']]['items'] ?? [] as $id => $item) {
             if ($item['type'] == 'item-choice') {
                 $data['background_options']['equip-choice'][$data['equipment'].'-item-'.$id] = $data[$data['equipment'].'-item-'.$id];
             }
         }
+
+        $data['extra_info']['gen_method'] = $data['gen_method'];
+        $data['extra_info']['scores'] = $data['scores'];
 
         return parent::mutateFormDataBeforeSave($data);
     }
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $data['equipment'] = $data['background_options']['equip'];
+        $data['equipment'] = $data['background_options']['equip'] ?? [];
 
-        foreach ($data['background_options']['equip-choice'] as $opt => $val) {
+        foreach ($data['background_options']['equip-choice'] ?? [] as $opt => $val) {
             $data[$opt] = $val;
         }
+        $data['gen_method'] = $data['extra_info']['gen_method'] ?? null;
+        $data['scores'] = $data['extra_info']['scores'] ?? [];
 
         return parent::mutateFormDataBeforeFill($data);
     }

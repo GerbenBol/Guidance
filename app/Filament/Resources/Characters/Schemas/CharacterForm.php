@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Characters\Schemas;
 
+use App\Enums\Ability;
 use App\Filament\Forms\Components\ClassFeature;
 use App\Models\Background;
 use App\Models\Character;
@@ -10,6 +11,7 @@ use App\Models\PlayerClass;
 use App\Models\Race;
 use App\Models\Skill;
 use App\Models\Spell;
+use App\Services\AbilityService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
@@ -805,9 +807,83 @@ class CharacterForm
                                         'std' => 'Standard Array',
                                     ])
                                     ->default('man'), // temp
-                                Section::make('Scores')
+                                Section::make()
                                     ->schema([
-                                        //
+                                        Hidden::make('used_points'),
+                                        TextEntry::make('total_used_points')
+                                            ->hiddenLabel()
+                                            ->state(function (Get $get): string {
+                                                return 'Used points: '.($get('used_points') ?? '0').'/27';
+                                            })
+                                            ->size('lg')
+                                            ->alignCenter()
+                                            ->visible(fn (Get $get): bool => $get('gen_method') == 'buy'),
+                                        Repeater::make('scores')
+                                            ->hiddenLabel()
+                                            ->schema(function (Get $get, Set $set): array {
+                                                $schema = [
+                                                    Hidden::make('ability'),
+                                                    TextEntry::make('ability_score')
+                                                        ->hiddenLabel()
+                                                        ->state(fn (Get $get) => ($get('ability') ?? '') . ' ('.(AbilityService::scoreToModifier($get('score') ?? 10)).')')
+                                                        ->alignCenter()
+                                                        ->size(TextSize::Large),
+                                                    TextInput::make('score')
+                                                        ->hiddenLabel()
+                                                        ->live(onBlur: true)
+                                                        ->numeric()
+                                                        ->visible(fn (): bool => $get('gen_method') == 'man'),
+                                                ];
+                                                $scoreSelect = Select::make('score')
+                                                    ->hiddenLabel()
+                                                    ->live()
+                                                    ->native(false)
+                                                    ->visible(fn (): bool => in_array($get('gen_method'), ['buy', 'std']));
+
+                                                switch ($get('gen_method')) {
+                                                    case 'std':
+                                                        $scoreSelect
+                                                            ->options([
+                                                                8 => 8,
+                                                                10 => 10,
+                                                                12 => 12,
+                                                                13 => 13,
+                                                                14 => 14,
+                                                                15 => 15,
+                                                            ])
+                                                            ->disableOptionsWhenSelectedInSiblingRepeaterItems();
+                                                        break;
+                                                    case 'buy':
+                                                        $opt = [
+                                                            8 => '8',
+                                                            9 => '9 (1 Point)',
+                                                            10 => '10 (2 Points)',
+                                                            11 => '11 (3 Points)',
+                                                            12 => '12 (4 Points)',
+                                                            13 => '13 (5 Points)',
+                                                            14 => '14 (7 Points)',
+                                                            15 => '15 (9 Points)',
+                                                        ];
+                                                        $scoreSelect
+                                                            ->options($opt)
+                                                            ->default(8)
+                                                            ->afterStateUpdated(fn ($state) => Log::info($state))
+                                                            ;//$set('used_points', ($get('used_points') ?? 0) - $old + $state));
+                                                        break;
+                                                    default: break;
+                                                }
+                                                $schema[] = $scoreSelect;
+
+                                                return $schema;
+                                            })
+                                            ->grid([
+                                                'md' => 6,
+                                                'default' => 3,
+                                            ])
+                                            ->reorderable(false)
+                                            ->deletable(false)
+                                            ->addable(false)
+                                            ->default('[{"ability":"Strength"},{"ability":"Dexterity"},{"ability":"Constitution"},{"ability":"Intelligence"},{"ability":"Wisdom"},{"ability":"Charisma"}]'),
                                     ])
                                     ->secondary()
                                     ->hidden(fn (Get $get): bool => !$get('gen_method'))
