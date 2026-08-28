@@ -834,42 +834,67 @@ class CharacterForm
                                                         ->numeric()
                                                         ->visible(fn (): bool => $get('gen_method') == 'man'),
                                                 ];
+                                                $opt = [
+                                                    8 => '8',
+                                                    9 => '9 (1 Point)',
+                                                    10 => '10 (2 Points)',
+                                                    11 => '11 (3 Points)',
+                                                    12 => '12 (4 Points)',
+                                                    13 => '13 (5 Points)',
+                                                    14 => '14 (7 Points)',
+                                                    15 => '15 (9 Points)',
+                                                ];
                                                 $scoreSelect = Select::make('score')
                                                     ->hiddenLabel()
                                                     ->live()
                                                     ->native(false)
-                                                    ->visible(fn (): bool => in_array($get('gen_method'), ['buy', 'std']));
+                                                    ->options(fn (): array => match ($get('gen_method')) {
+                                                        'std' => [
+                                                            8 => 8,
+                                                            10 => 10,
+                                                            12 => 12,
+                                                            13 => 13,
+                                                            14 => 14,
+                                                            15 => 15,
+                                                        ],
+                                                        'buy' => $opt,
+                                                        default => []
+                                                    })
+                                                    ->visible(fn (): bool => in_array($get('gen_method'), ['buy', 'std']))
+                                                    ->afterStateUpdated(function ($state, $old) use ($get, $set) {
+                                                        if ($get('gen_method') == 'buy')
+                                                    });
 
                                                 switch ($get('gen_method')) {
                                                     case 'std':
                                                         $scoreSelect
-                                                            ->options([
-                                                                8 => 8,
-                                                                10 => 10,
-                                                                12 => 12,
-                                                                13 => 13,
-                                                                14 => 14,
-                                                                15 => 15,
-                                                            ])
+                                                            // ->options([
+                                                            //     8 => 8,
+                                                            //     10 => 10,
+                                                            //     12 => 12,
+                                                            //     13 => 13,
+                                                            //     14 => 14,
+                                                            //     15 => 15,
+                                                            // ])
                                                             ->disableOptionsWhenSelectedInSiblingRepeaterItems();
                                                         break;
-                                                    case 'buy':
-                                                        $opt = [
-                                                            8 => '8',
-                                                            9 => '9 (1 Point)',
-                                                            10 => '10 (2 Points)',
-                                                            11 => '11 (3 Points)',
-                                                            12 => '12 (4 Points)',
-                                                            13 => '13 (5 Points)',
-                                                            14 => '14 (7 Points)',
-                                                            15 => '15 (9 Points)',
-                                                        ];
-                                                        $scoreSelect
-                                                            ->options($opt)
-                                                            ->default(8)
-                                                            ->afterStateUpdated(fn ($state) => Log::info($state))
-                                                            ;//$set('used_points', ($get('used_points') ?? 0) - $old + $state));
-                                                        break;
+                                                    // case 'buy':
+                                                    //     $opt = [
+                                                    //         8 => '8',
+                                                    //         9 => '9 (1 Point)',
+                                                    //         10 => '10 (2 Points)',
+                                                    //         11 => '11 (3 Points)',
+                                                    //         12 => '12 (4 Points)',
+                                                    //         13 => '13 (5 Points)',
+                                                    //         14 => '14 (7 Points)',
+                                                    //         15 => '15 (9 Points)',
+                                                    //     ];
+                                                    //     $scoreSelect
+                                                    //         ->options($opt)
+                                                    //         ->default(8)
+                                                    //         ->afterStateUpdated(fn ($state) => Log::info($state))
+                                                    //         ;//$set('used_points', ($get('used_points') ?? 0) - $old + $state));
+                                                    //     break;
                                                     default: break;
                                                 }
                                                 $schema[] = $scoreSelect;
