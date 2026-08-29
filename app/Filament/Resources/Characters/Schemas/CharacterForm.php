@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Characters\Schemas;
 
-use App\Enums\Ability;
 use App\Filament\Forms\Components\ClassFeature;
 use App\Models\Background;
 use App\Models\Character;
@@ -825,7 +824,7 @@ class CharacterForm
                                                     Hidden::make('ability'),
                                                     TextEntry::make('ability_score')
                                                         ->hiddenLabel()
-                                                        ->state(fn (Get $get) => ($get('ability') ?? '') . ' ('.(AbilityService::scoreToModifier($get('score') ?? 10)).')')
+                                                        ->state(fn (Get $get) => ($get('ability') ?? '').' ('.(AbilityService::scoreToModifierString(($get('gen_method') == 'man' ? $get('score') : $get('select_score')) ?? 10)).')')
                                                         ->alignCenter()
                                                         ->size(TextSize::Large),
                                                     TextInput::make('score')
@@ -834,21 +833,11 @@ class CharacterForm
                                                         ->numeric()
                                                         ->visible(fn (): bool => $get('gen_method') == 'man'),
                                                 ];
-                                                $opt = [
-                                                    8 => '8',
-                                                    9 => '9 (1 Point)',
-                                                    10 => '10 (2 Points)',
-                                                    11 => '11 (3 Points)',
-                                                    12 => '12 (4 Points)',
-                                                    13 => '13 (5 Points)',
-                                                    14 => '14 (7 Points)',
-                                                    15 => '15 (9 Points)',
-                                                ];
-                                                $scoreSelect = Select::make('score')
+                                                $scoreSelect = Select::make('select_score')
                                                     ->hiddenLabel()
-                                                    ->live()
+                                                    ->live(onBlur: true)
                                                     ->native(false)
-                                                    ->options(fn (): array => match ($get('gen_method')) {
+                                                    ->options(fn ($state): array => match ($get('gen_method')) {
                                                         'std' => [
                                                             8 => 8,
                                                             10 => 10,
@@ -857,45 +846,18 @@ class CharacterForm
                                                             14 => 14,
                                                             15 => 15,
                                                         ],
-                                                        'buy' => $opt,
+                                                        'buy' => self::getAvailablePoints(($get('used_points') ?? 0) - self::matchPoints($state)),
                                                         default => []
                                                     })
                                                     ->visible(fn (): bool => in_array($get('gen_method'), ['buy', 'std']))
                                                     ->afterStateUpdated(function ($state, $old) use ($get, $set) {
-                                                        if ($get('gen_method') == 'buy')
+                                                        if ($get('gen_method') == 'buy') {
+                                                            $set('used_points', ($get('used_points') ?? 0) - self::matchPoints($old) + self::matchPoints($state));
+                                                        }
                                                     });
 
-                                                switch ($get('gen_method')) {
-                                                    case 'std':
-                                                        $scoreSelect
-                                                            // ->options([
-                                                            //     8 => 8,
-                                                            //     10 => 10,
-                                                            //     12 => 12,
-                                                            //     13 => 13,
-                                                            //     14 => 14,
-                                                            //     15 => 15,
-                                                            // ])
-                                                            ->disableOptionsWhenSelectedInSiblingRepeaterItems();
-                                                        break;
-                                                    // case 'buy':
-                                                    //     $opt = [
-                                                    //         8 => '8',
-                                                    //         9 => '9 (1 Point)',
-                                                    //         10 => '10 (2 Points)',
-                                                    //         11 => '11 (3 Points)',
-                                                    //         12 => '12 (4 Points)',
-                                                    //         13 => '13 (5 Points)',
-                                                    //         14 => '14 (7 Points)',
-                                                    //         15 => '15 (9 Points)',
-                                                    //     ];
-                                                    //     $scoreSelect
-                                                    //         ->options($opt)
-                                                    //         ->default(8)
-                                                    //         ->afterStateUpdated(fn ($state) => Log::info($state))
-                                                    //         ;//$set('used_points', ($get('used_points') ?? 0) - $old + $state));
-                                                    //     break;
-                                                    default: break;
+                                                if ($get('gen_method') == 'std') {
+                                                    $scoreSelect->disableOptionsWhenSelectedInSiblingRepeaterItems();
                                                 }
                                                 $schema[] = $scoreSelect;
 
@@ -911,7 +873,7 @@ class CharacterForm
                                             ->default('[{"ability":"Strength"},{"ability":"Dexterity"},{"ability":"Constitution"},{"ability":"Intelligence"},{"ability":"Wisdom"},{"ability":"Charisma"}]'),
                                     ])
                                     ->secondary()
-                                    ->hidden(fn (Get $get): bool => !$get('gen_method'))
+                                    ->hidden(fn (Get $get): bool => ! $get('gen_method')),
                             ]),
                         Step::make('Equipment')
                             ->icon(Heroicon::OutlinedAcademicCap)
@@ -977,5 +939,42 @@ class CharacterForm
             $chosen = array_flip($chosen);
         }
         $set($array, json_encode($chosen));
+    }
+
+    private static function matchPoints(?int $state): int
+    {
+        return match ($state) {
+            default => 0,
+            9 => 1,
+            10 => 2,
+            11 => 3,
+            12 => 4,
+            13 => 5,
+            14 => 7,
+            15 => 9
+        };
+    }
+
+    private static function getAvailablePoints(int $activePoints): array
+    {
+        $pointsLeft = 27 - $activePoints;
+        $options = [8 => '8'];
+        $opt = [
+            9 => 1,
+            10 => 2,
+            11 => 3,
+            12 => 4,
+            13 => 5,
+            14 => 7,
+            15 => 9,
+        ];
+
+        foreach ($opt as $id => $points) {
+            if ($pointsLeft >= $points) {
+                $options[$id] = $id.' ('.self::matchPoints($id).' Points)';
+            }
+        }
+
+        return $options;
     }
 }

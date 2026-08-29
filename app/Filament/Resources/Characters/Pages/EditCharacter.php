@@ -54,7 +54,15 @@ class EditCharacter extends EditRecord
         }
 
         $data['extra_info']['gen_method'] = $data['gen_method'];
+        $data['extra_info']['used_points'] = $data['used_points'];
         $data['extra_info']['scores'] = $data['scores'];
+
+        if ($data['gen_method'] != 'man') {
+            foreach ($data['extra_info']['scores'] as $id => $score) {
+                $data['extra_info']['scores'][$id]['score'] = $score['select_score'];
+                unset($data['extra_info']['scores'][$id]['select_score']);
+            }
+        }
 
         return parent::mutateFormDataBeforeSave($data);
     }
@@ -67,7 +75,14 @@ class EditCharacter extends EditRecord
             $data[$opt] = $val;
         }
         $data['gen_method'] = $data['extra_info']['gen_method'] ?? null;
+        $data['used_points'] = $data['extra_info']['used_points'] ?? null;
         $data['scores'] = $data['extra_info']['scores'] ?? [];
+
+        if ($data['gen_method'] != 'man') {
+            foreach ($data['scores'] as $id => $score) {
+                $data['scores'][$id]['select_score'] = $score['score'];
+            }
+        }
 
         return parent::mutateFormDataBeforeFill($data);
     }
