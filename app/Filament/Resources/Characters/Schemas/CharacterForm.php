@@ -468,6 +468,7 @@ class CharacterForm
                                     ->hiddenLabel()
                                     ->prefix('Race:')
                                     ->relationship('race', 'name')
+                                    ->live()
                                     ->searchable()
                                     ->preload()
                                     ->suffixAction(
@@ -557,6 +558,7 @@ class CharacterForm
                                     ->hiddenLabel()
                                     ->prefix('Background:')
                                     ->relationship('background', 'name')
+                                    ->live()
                                     ->searchable()
                                     ->preload()
                                     ->suffixAction(
@@ -657,7 +659,7 @@ class CharacterForm
                                                 return $schema;
                                             })
                                     ),
-                                Section::make('Proficiencies, Feat(s) & Equipment')
+                                Section::make('Proficiencies & Feat(s)')
                                     ->schema(function (array $state, Get $get, Set $set): array {
                                         if ($get('background_id')) {
                                             $bg = Background::find($get('background_id'));
@@ -734,46 +736,6 @@ class CharacterForm
                                                         break;
                                                     }
                                                 }
-                                                $schema[] = self::getDivider();
-                                                $equipment = [];
-
-                                                foreach ($bg->equipment as $id => $option) {
-                                                    $$id = chr(65 + $id).': (';
-
-                                                    foreach ($option['items'] as $item) {
-                                                        $$id .= match ($item['type']) {
-                                                            'gp' => $item['amount'].' GP',
-                                                            'item' => $item['amount'].' '.$item['item'],
-                                                            'item-choice' => $item['amount'].' '.implode(' or ', $item['items']),
-                                                            'pack' => $item['name'],
-                                                            default => '',
-                                                        }.', ';
-                                                    }
-                                                    $equipment[$id] = substr($$id, 0, strlen($$id) - 2).')';
-                                                }
-                                                $schema[] = Radio::make('equipment')
-                                                    ->label('Equipment:')
-                                                    ->live()
-                                                    ->options($equipment);
-
-                                                foreach ($bg->equipment as $id => $option) {
-                                                    foreach ($option['items'] as $opt => $item) {
-                                                        if ($item['type'] == 'item-choice') {
-                                                            $items = [];
-
-                                                            foreach ($item['items'] as $i) {
-                                                                $items[$i] = $i; // Item::find($i)->name
-                                                            }
-
-                                                            $schema[] = Select::make($id.'-item-'.$opt)
-                                                                ->hiddenLabel()
-                                                                ->prefix('Choose an Item')
-                                                                ->options($items)
-                                                                ->searchable()
-                                                                ->visible(fn (Get $get): bool => $get('equipment') == $id ?? false);
-                                                        }
-                                                    }
-                                                }
                                             } catch (\Exception $e) {
                                                 $set('background_id', null);
                                                 Notification::make('backgroundLoadingFailed')
@@ -804,8 +766,7 @@ class CharacterForm
                                         'man' => 'Manual/Rolled',
                                         'buy' => 'Point Buy',
                                         'std' => 'Standard Array',
-                                    ])
-                                    ->default('man'), // temp
+                                    ]),
                                 Section::make()
                                     ->schema([
                                         Hidden::make('used_points'),
@@ -860,6 +821,13 @@ class CharacterForm
                                                     $scoreSelect->disableOptionsWhenSelectedInSiblingRepeaterItems();
                                                 }
                                                 $schema[] = $scoreSelect;
+                                                $schema[] = self::getDivider();
+                                                $schema[] = TextInput::make('misc_bonus')
+                                                    ->label('Miscellaneous bonus')
+                                                    ->numeric();
+                                                $schema[] = TextInput::make('score_override')
+                                                    ->numeric()
+                                                    ->minValue(0);
 
                                                 return $schema;
                                             })
@@ -878,11 +846,69 @@ class CharacterForm
                         Step::make('Equipment')
                             ->icon(Heroicon::OutlinedAcademicCap)
                             ->completedIcon(Heroicon::AcademicCap)
-                            ->schema([]),
+                            ->schema([
+                                Section::make('Class Equipment')
+                                    ->schema(function (Get $get) use ($primaryClass): array {
+                                        $schema = $equipment = [];
+                                        $class = $primaryClass;
+                                        dd($class);
+
+                                        return $schema;
+                                    })
+                                    ->secondary(),
+                                Section::make('Background Equipment')
+                                    ->schema(function (Get $get): array {
+                                        $schema = $equipment = [];
+                                        $bg = Background::find($get('background_id'));
+
+                                        if ($bg) {
+                                            foreach ($bg->equipment as $id => $option) {
+                                                $$id = chr(65 + $id).': (';
+
+                                                foreach ($option['items'] as $item) {
+                                                    $$id .= match ($item['type']) {
+                                                        'gp' => $item['amount'].' GP',
+                                                        'item' => $item['amount'].' '.$item['item'],
+                                                        'item-choice' => $item['amount'].' '.implode(' or ', $item['items']),
+                                                        'pack' => $item['name'],
+                                                        default => '',
+                                                    }.', ';
+                                                }
+                                                $equipment[$id] = substr($$id, 0, strlen($$id) - 2).')';
+                                            }
+                                            $schema[] = Radio::make('equipment')
+                                                ->label('Equipment:')
+                                                ->live()
+                                                ->options($equipment);
+
+                                            foreach ($bg->equipment as $id => $option) {
+                                                foreach ($option['items'] as $opt => $item) {
+                                                    if ($item['type'] == 'item-choice') {
+                                                        $items = [];
+
+                                                        foreach ($item['items'] as $i) {
+                                                            $items[$i] = $i; // Item::find($i)->name
+                                                        }
+
+                                                        $schema[] = Select::make($id.'-item-'.$opt)
+                                                            ->hiddenLabel()
+                                                            ->prefix('Choose an Item')
+                                                            ->options($items)
+                                                            ->searchable()
+                                                            ->visible(fn (Get $get): bool => $get('equipment') == $id ?? false);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        return $schema;
+                                    })
+                                    ->secondary(),
+                            ]),
                     ];
                 })
                     ->columnSpanFull()
-                    ->startOnStep(4) // temp
+                    ->startOnStep(5) // temp
                     ->skippable(),
             ])
             ->columns(12);
