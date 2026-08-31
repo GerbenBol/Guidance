@@ -383,6 +383,10 @@ class ClassForm
                                             ->secondary(),
                                     ])
                                     ->columns(2),
+                                Tab::make('Equipment')
+                                    ->schema([
+                                        FormService::getEquipmentRepeater(),
+                                    ]),
                             ])
                             ->columnSpanFull(),
                     ];

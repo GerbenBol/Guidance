@@ -15,6 +15,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\FusedGroup;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Icon;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -276,6 +277,75 @@ class FormService
     public static function addPrefixToIDs(string $prefix, array $items): array
     {
         return array_flip(array_map(fn ($item) => $prefix.'-'.$item, array_flip($items)));
+    }
+
+    public static function getEquipmentRepeater(): Repeater
+    {
+        return Repeater::make('equipment')
+            ->hiddenLabel()
+            ->schema([
+                Repeater::make('items')
+                    ->hiddenLabel()
+                    ->schema([
+                        Grid::make(4)
+                            ->schema([
+                                Select::make('type')
+                                    ->native(false)
+                                    ->default('item')
+                                    ->live()
+                                    ->options([
+                                        'gp' => 'Gold',
+                                        'item' => 'Item',
+                                        'item-choice' => 'Item Choice',
+                                        'pack' => 'Pack',
+                                    ])
+                                    ->columnSpan(2),
+                                TextInput::make('amount')
+                                    ->numeric()
+                                    ->suffix(fn (Get $get): string => $get('type') == 'gp' ? 'GP' : '')
+                                    ->visible(fn (Get $get): bool => $get('type') != 'pack')
+                                    ->columnSpan(fn (Get $get): int => $get('type') == 'gp' ? 2 : 1),
+                                Select::make('item')
+                                    // ->relationship('items', 'name')
+                                    ->options([])
+                                    ->searchable()
+                                    ->createOptionModalHeading('New Item')
+                                    ->createOptionForm([
+                                        TextInput::make('name'),
+                                    ])
+                                    ->visible(fn (Get $get): bool => $get('type') == 'item'),
+                                Select::make('items')
+                                    // ->relationship('items', 'name')
+                                    ->options([])
+                                    ->multiple()
+                                    ->createOptionModalHeading('New Item')
+                                    ->createOptionForm([
+                                        TextInput::make('name'),
+                                    ])
+                                    ->visible(fn (Get $get): bool => $get('type') == 'item-choice'),
+                                TextInput::make('name')
+                                    ->visible(fn (Get $get): bool => $get('type') == 'pack')
+                                    ->columnSpan(2),
+                            ]),
+                        Repeater::make('pack')
+                            ->label('Pack Items')
+                            ->visible(fn (Get $get): bool => $get('type') == 'pack')
+                            ->schema([
+                                TextInput::make('amount')
+                                    ->numeric(),
+                                Select::make('item')
+                                    // ->relationship('items', 'name')
+                                    ->options([])
+                                    ->searchable()
+                                    ->createOptionModalHeading('New Item')
+                                    ->createOptionForm([]),
+                            ])
+                            ->addActionLabel('Add to pack items')
+                            ->columns(2),
+                    ]),
+            ])
+            ->collapsible()
+            ->itemLabel(fn (int $index): string => 'Option '.chr(65 + $index));
     }
 
     private static function getModifierOptions(?string $input): array

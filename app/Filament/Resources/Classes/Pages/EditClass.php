@@ -49,6 +49,8 @@ class EditClass extends EditRecord
             }
         }
 
+        $data['equipment'] = json_decode(json_encode($data['equipment']), true);
+
         return $data;
     }
 
@@ -63,6 +65,7 @@ class EditClass extends EditRecord
             'asi_lvls',
             'subclass_name',
             'subclass_start_lvl',
+            'equipment',
         ];
 
         $spell_inputs = [

@@ -19,6 +19,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Livewire;
@@ -847,63 +848,173 @@ class CharacterForm
                             ->icon(Heroicon::OutlinedAcademicCap)
                             ->completedIcon(Heroicon::AcademicCap)
                             ->schema([
-                                Section::make('Class Equipment')
-                                    ->schema(function (Get $get) use ($primaryClass): array {
-                                        $schema = $equipment = [];
-                                        $class = $primaryClass;
-                                        dd($class);
-
-                                        return $schema;
-                                    })
-                                    ->secondary(),
-                                Section::make('Background Equipment')
+                                Hidden::make('inventory'),
+                                Section::make('Inventory')
                                     ->schema(function (Get $get): array {
-                                        $schema = $equipment = [];
-                                        $bg = Background::find($get('background_id'));
+                                        $schema = $coins = [];
+                                        $inventory = $get('inventory');
+                                        $coinOrder = ['cp', 'sp', 'gp', 'ep', 'pp'];
 
-                                        if ($bg) {
-                                            foreach ($bg->equipment as $id => $option) {
-                                                $$id = chr(65 + $id).': (';
+                                        foreach ($coinOrder as $coin) {
+                                            $coins[] = TextEntry::make($coin)
+                                                ->hiddenLabel()
+                                                ->state(match ($coin) {
+                                                    'cp' => 'Copper',
+                                                    'sp' => 'Silver',
+                                                    'gp' => 'Gold',
+                                                    'ep' => 'Electrum',
+                                                    'pp' => 'Platinum',
+                                                    default => ''
+                                                }.': '.$inventory['coin'][$coin])
+                                                ->alignCenter();
+                                        }
+                                        $schema[] = Grid::make(5)
+                                            ->schema($coins);
+                                        $schema[] = self::getDivider();
 
-                                                foreach ($option['items'] as $item) {
-                                                    $$id .= match ($item['type']) {
-                                                        'gp' => $item['amount'].' GP',
-                                                        'item' => $item['amount'].' '.$item['item'],
-                                                        'item-choice' => $item['amount'].' '.implode(' or ', $item['items']),
-                                                        'pack' => $item['name'],
-                                                        default => '',
-                                                    }.', ';
-                                                }
-                                                $equipment[$id] = substr($$id, 0, strlen($$id) - 2).')';
-                                            }
-                                            $schema[] = Radio::make('equipment')
-                                                ->label('Equipment:')
-                                                ->live()
-                                                ->options($equipment);
-
-                                            foreach ($bg->equipment as $id => $option) {
-                                                foreach ($option['items'] as $opt => $item) {
-                                                    if ($item['type'] == 'item-choice') {
-                                                        $items = [];
-
-                                                        foreach ($item['items'] as $i) {
-                                                            $items[$i] = $i; // Item::find($i)->name
-                                                        }
-
-                                                        $schema[] = Select::make($id.'-item-'.$opt)
-                                                            ->hiddenLabel()
-                                                            ->prefix('Choose an Item')
-                                                            ->options($items)
-                                                            ->searchable()
-                                                            ->visible(fn (Get $get): bool => $get('equipment') == $id ?? false);
-                                                    }
-                                                }
-                                            }
+                                        foreach ($inventory['items'] as $item) {
+                                            //
                                         }
 
                                         return $schema;
                                     })
-                                    ->secondary(),
+                                    ->secondary()
+                                    ->collapsed(fn (Get $get) => $get('inventory')),
+                                Section::make('Class & Background Equipment')
+                                    ->schema([
+                                        Section::make('Class Equipment')
+                                            ->schema(function (Get $get) use ($primaryClass): array {
+                                                $schema = $equipment = [];
+                                                $class = $primaryClass;
+
+                                                if ($class) {
+                                                    $equip = json_decode(json_encode($class->class_info->equipment), true);
+                                                    foreach ($equip as $id => $option) {
+                                                        $$id = chr(65 + $id).': (';
+
+                                                        foreach ($option['items'] as $item) {
+                                                            $$id .= match ($item['type']) {
+                                                                'gp' => $item['amount'].' GP',
+                                                                'item' => $item['amount'].' '.$item['item'],
+                                                                'item-choice' => $item['amount'].' '.implode(' or ', $item['items']),
+                                                                'pack' => $item['name'],
+                                                                default => '',
+                                                            }.', ';
+                                                        }
+                                                        $equipment[$id] = substr($$id, 0, strlen($$id) - 2).')';
+                                                    }
+                                                    $schema[] = Radio::make('class_equipment')
+                                                        ->label('Equipment:')
+                                                        ->live()
+                                                        ->options($equipment);
+
+                                                    foreach ($equip as $id => $option) {
+                                                        foreach ($option['items'] as $opt => $item) {
+                                                            if ($item['type'] == 'item-choice') {
+                                                                $items = [];
+
+                                                                foreach ($item['items'] as $i) {
+                                                                    $items[$i] = $i; // Item::find($i)->name
+                                                                }
+
+                                                                $schema[] = Select::make('class-'.$id.'-item-'.$opt)
+                                                                    ->hiddenLabel()
+                                                                    ->prefix('Choose an item')
+                                                                    ->options($items)
+                                                                    ->searchable()
+                                                                    ->visible(fn (Get $get): bool => $get('class_equipment') == $id ?? false);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                return $schema;
+                                            }),
+                                        Section::make('Background Equipment')
+                                            ->schema(function (Get $get): array {
+                                                $schema = $equipment = [];
+                                                $bg = Background::find($get('background_id'));
+
+                                                if ($bg) {
+                                                    foreach ($bg->equipment as $id => $option) {
+                                                        $$id = chr(65 + $id).': (';
+
+                                                        foreach ($option['items'] as $item) {
+                                                            $$id .= match ($item['type']) {
+                                                                'gp' => $item['amount'].' GP',
+                                                                'item' => $item['amount'].' '.$item['item'],
+                                                                'item-choice' => $item['amount'].' '.implode(' or ', $item['items']),
+                                                                'pack' => $item['name'],
+                                                                default => '',
+                                                            }.', ';
+                                                        }
+                                                        $equipment[$id] = substr($$id, 0, strlen($$id) - 2).')';
+                                                    }
+                                                    $schema[] = Radio::make('bg_equipment')
+                                                        ->label('Equipment:')
+                                                        ->live()
+                                                        ->options($equipment);
+
+                                                    foreach ($bg->equipment as $id => $option) {
+                                                        foreach ($option['items'] as $opt => $item) {
+                                                            if ($item['type'] == 'item-choice') {
+                                                                $items = [];
+
+                                                                foreach ($item['items'] as $i) {
+                                                                    $items[$i] = $i; // Item::find($i)->name
+                                                                }
+
+                                                                $schema[] = Select::make('bg-'.$id.'-item-'.$opt)
+                                                                    ->hiddenLabel()
+                                                                    ->prefix('Choose an item')
+                                                                    ->options($items)
+                                                                    ->searchable()
+                                                                    ->visible(fn (Get $get): bool => $get('bg_equipment') == $id ?? false);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                return $schema;
+                                            }),
+                                        Actions::make([
+                                            Action::make('addClassBackgroundEquipment')
+                                                ->label('Add to inventory')
+                                                ->icon(Heroicon::Plus)
+                                                ->action(function (Get $get, Set $set) use ($primaryClass) {
+                                                    $cChosen = $get('class_equipment');
+                                                    $bChosen = $get('bg_equipment');
+                                                    $class = $primaryClass;
+                                                    $bg = Background::find($get('background_id'));
+
+                                                    $cInventory = self::prepareForInventory(
+                                                        $class->class_info->equipment[$cChosen]->items ?? [],
+                                                        'class', $cChosen, $get
+                                                    );
+                                                    $bInventory = self::prepareForInventory(
+                                                        $bg->equipment[$bChosen]['items'],
+                                                        'bg', $bChosen, $get
+                                                    );
+                                                    $inventory = [
+                                                        'coin' => [
+                                                            'cp' => 0,
+                                                            'sp' => 0,
+                                                            'gp' => $cInventory['coin'] + $bInventory['coin'],
+                                                            'ep' => 0,
+                                                            'pp' => 0,
+                                                        ],
+                                                        'items' => array_merge(
+                                                            $cInventory['items'],
+                                                            $bInventory['items'],
+                                                        ),
+                                                    ];
+                                                    $set('inventory', $inventory);
+                                                }),
+                                        ])
+                                            ->alignEnd(),
+                                    ])
+                                    ->secondary()
+                                    ->collapsed(fn (Get $get) => $get('inventory')),
                             ]),
                     ];
                 })
@@ -1002,5 +1113,41 @@ class CharacterForm
         }
 
         return $options;
+    }
+
+    private static function prepareForInventory(array|\stdClass $equipment, string $prefix, int $option, Get $get): array
+    {
+        $inventory = [
+            'coin' => 0,
+            'items' => [],
+        ];
+        $equipment = json_decode(json_encode($equipment), true);
+
+        foreach ($equipment as $id => $item) {
+            switch ($item['type']) {
+                case 'gp':
+                    $inventory['coin'] += $item['amount'];
+                    break;
+                case 'item':
+                    $inventory['items'][] = [
+                        'amount' => $item['amount'],
+                        'item' => $item['item'],
+                    ];
+                    break;
+                case 'item-choice':
+                    $inventory['items'][] = [
+                        'amount' => $item['amount'],
+                        'item' => $get($prefix.'-'.$option.'-item-'.$id),
+                    ];
+                    break;
+                case 'pack':
+                    foreach ($item['pack'] as $i) {
+                        $inventory['items'][] = $i;
+                    }
+                    break;
+            }
+        }
+
+        return $inventory;
     }
 }
