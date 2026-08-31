@@ -6,6 +6,7 @@ use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Character extends Model
 {
@@ -51,6 +52,11 @@ class Character extends Model
     public function background(): BelongsTo
     {
         return $this->belongsTo(Background::class);
+    }
+
+    public function sheet(): HasOne
+    {
+        return $this->hasOne(Sheet::class, 'character_id');
     }
 
     public function classes(): Collection

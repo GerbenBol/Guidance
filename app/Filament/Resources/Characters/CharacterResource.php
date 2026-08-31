@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Characters;
 
+use App\Filament\Resources\Characters\Pages\CharacterSheet;
 use App\Filament\Resources\Characters\Pages\CreateCharacter;
 use App\Filament\Resources\Characters\Pages\EditCharacter;
 use App\Filament\Resources\Characters\Pages\ListCharacters;
@@ -52,6 +53,7 @@ class CharacterResource extends Resource
             'create' => CreateCharacter::route('/create'),
             'view' => ViewCharacter::route('/{record}'),
             'edit' => EditCharacter::route('/{record}/edit'),
+            'sheet' => CharacterSheet::route('/{record}/sheet'),
         ];
     }
 }

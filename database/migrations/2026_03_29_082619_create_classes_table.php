@@ -17,8 +17,11 @@ return new class extends Migration
             $table->string('system_version')->nullable();
             $table->longText('short_desc')->nullable();
             $table->longText('description')->nullable();
+            $table->json('class_info')->nullable();
             $table->json('features')->nullable();
             $table->json('spell_info')->nullable();
+            $table->string('hit_die')->nullable();
+            $table->integer('max_levels')->default(20);
             $table->bigInteger('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();

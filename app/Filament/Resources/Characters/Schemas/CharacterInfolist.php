@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Characters\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -14,7 +15,14 @@ class CharacterInfolist
                 TextEntry::make('name'),
                 TextEntry::make('race_id')
                     ->numeric()
-                    ->placeholder('-'),
+                    ->placeholder('-')
+                    ->action(
+                        Action::make('showRace')
+                            ->slideOver()
+                            ->schema([
+                                TextEntry::make('race.name'),
+                            ])
+                    ),
                 TextEntry::make('background_id')
                     ->numeric()
                     ->placeholder('-'),

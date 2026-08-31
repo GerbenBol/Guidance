@@ -23,7 +23,6 @@ return new class extends Migration
             $table->json('inventory')->nullable();
             $table->json('settings')->nullable();
             $table->json('extra_info')->nullable();
-            $table->boolean('updated')->default(true);
             $table->bigInteger('player_id')->unsigned();
 
             $table->foreign('player_id')->references('id')->on('users')->onDelete('cascade');

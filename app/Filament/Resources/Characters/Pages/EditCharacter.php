@@ -4,9 +4,12 @@ namespace App\Filament\Resources\Characters\Pages;
 
 use App\Filament\Resources\Characters\CharacterResource;
 use App\Models\Background;
+use App\Models\Character;
+use App\Models\Sheet;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 
 class EditCharacter extends EditRecord
@@ -21,7 +24,25 @@ class EditCharacter extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            ViewAction::make(),
+            Action::make('generateSheet')
+                ->label('Prepare Sheet')
+                ->icon(Heroicon::Cog)
+                ->action(function (Character $record) {
+                    if (! $record->sheet) {
+                        $sheet = Sheet::create([
+                            'character_id' => $this->record->id,
+                        ]);
+                    } else {
+                        $sheet = $record->sheet;
+                    }
+                    $sheet->generate();
+                })
+                ->visible(fn (Character $record): bool => ! $record->sheet?->isUpToDate() ?? true),
+            Action::make('openSheet')
+                ->label('Open Sheet')
+                ->icon(Heroicon::PaperAirplane)
+                ->url('sheet')
+                ->visible(fn (Character $record): bool => $record->sheet?->isUpToDate() ?? false),
             DeleteAction::make(),
         ];
     }

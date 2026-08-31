@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->enum('ability', Ability::cases());
             $table->boolean('custom')->default(false);
+            $table->bigInteger('user_id')->unsigned()->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
             $table->timestamps();
         });
     }
