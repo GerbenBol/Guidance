@@ -1019,7 +1019,6 @@ class CharacterForm
                     ];
                 })
                     ->columnSpanFull()
-                    ->startOnStep(5) // temp
                     ->skippable(),
             ])
             ->columns(12);
