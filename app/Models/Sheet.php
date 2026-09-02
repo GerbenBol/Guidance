@@ -78,6 +78,7 @@ class Sheet extends Model
         return $this->info->race_options;
     }
 
+    public object $race_options { get => $this->info->race_options; }
     public object $background_options { get => $this->info->background_options; }
     public Background $background { get => Background::find($this->info->background_id); }
 }
