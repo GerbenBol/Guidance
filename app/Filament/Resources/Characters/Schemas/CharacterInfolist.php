@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Characters\Schemas;
 
 use App\Models\Character;
-use App\Models\Sheet;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
@@ -14,7 +13,8 @@ class CharacterInfolist
     {
         return $schema
             ->components(function (Character $record) {
-                dd($record->sheet->background);
+                dd($record->sheet->hp);
+
                 return [
                     TextEntry::make('name'),
                     TextEntry::make('race_id')

@@ -41,7 +41,7 @@ class CharacterForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components(fn (Character $record): array => [
+            ->components(fn (?Character $record): array => [
                 Hidden::make('player_id')
                     ->default(Auth::user()->id),
                 TextInput::make('name')
@@ -52,7 +52,7 @@ class CharacterForm
                 TextEntry::make('hp')
                     ->hiddenLabel()
                     ->default(0)
-                    ->formatStateUsing(fn () => 'Total HP: '.collect($record->classes)->pluck('total_hp')->sum())
+                    ->formatStateUsing(fn () => 'Total HP: '.collect($record?->classes)->pluck('total_hp')->sum())
                     ->size(TextSize::Large)
                     ->alignment(Alignment::Center)
                     ->columnSpan(2)
@@ -64,7 +64,7 @@ class CharacterForm
                             ->schema([
                                 TextEntry::make('total')
                                     ->hiddenLabel()
-                                    ->state('Total HP: '.collect($record->classes)->pluck('total_hp')->sum())
+                                    ->state('Total HP: '.collect($record?->classes)->pluck('total_hp')->sum())
                                     ->size(TextSize::Large)
                                     ->alignment(Alignment::Center),
                                 self::getDivider(),
