@@ -14,6 +14,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\FusedGroup;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Icon;
@@ -22,6 +23,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 
 class FormService
 {
@@ -346,6 +348,13 @@ class FormService
             ])
             ->collapsible()
             ->itemLabel(fn (int $index): string => 'Option '.chr(65 + $index));
+    }
+
+    public static function getDivider(): TextEntry
+    {
+        return TextEntry::make('div')
+            ->hiddenLabel()
+            ->state(new HtmlString('<hr class="border-gray-200 dark:border-gray-700">'));
     }
 
     private static function getModifierOptions(?string $input): array

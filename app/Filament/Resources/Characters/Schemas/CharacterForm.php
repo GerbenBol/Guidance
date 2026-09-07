@@ -11,6 +11,7 @@ use App\Models\Race;
 use App\Models\Skill;
 use App\Models\Spell;
 use App\Services\AbilityService;
+use App\Services\FormService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
@@ -67,7 +68,7 @@ class CharacterForm
                                     ->state('Total HP: '.collect($record?->classes)->pluck('total_hp')->sum())
                                     ->size(TextSize::Large)
                                     ->alignment(Alignment::Center),
-                                self::getDivider(),
+                                FormService::getDivider(),
                                 Grid::make('3')
                                     ->schema([
                                         Select::make('use_fixed_hp')
@@ -86,7 +87,7 @@ class CharacterForm
                                             ->numeric()
                                             ->placeholder('-'),
                                     ]),
-                                self::getDivider(),
+                                FormService::getDivider(),
                                 TextEntry::make('current_calculations')
                                     ->hiddenLabel()
                                     ->state(new HtmlString('Current HP calculations:<br>'))
@@ -106,7 +107,7 @@ class CharacterForm
                                         return $state;
                                     })
                                     ->html(),
-                                self::getDivider(),
+                                FormService::getDivider(),
                                 TextEntry::make('explanation')
                                     ->hiddenLabel()
                                     ->state(new HtmlString(
@@ -213,7 +214,7 @@ class CharacterForm
                                                             ->state('Current class HP: '.collect($get('hp'))->sum())
                                                             ->size(TextSize::Large)
                                                             ->alignment(Alignment::Center),
-                                                        self::getDivider(),
+                                                        FormService::getDivider(),
                                                         Grid::make(4)
                                                             ->schema([
                                                                 TextEntry::make('nothing')
@@ -244,7 +245,7 @@ class CharacterForm
                                                                     ->size(TextSize::Medium)
                                                                     ->alignment(Alignment::Center),
                                                             ]),
-                                                        self::getDivider(),
+                                                        FormService::getDivider(),
                                                         Grid::make(count($schema) > 3 ? 3 : count($schema))
                                                             ->schema($schema),
                                                     ];
@@ -371,7 +372,7 @@ class CharacterForm
                                                                                     (isset($spell->duration) && $spell->duration != '[]' ? '<b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '') : '')
                                                                                 ))
                                                                                 ->html(),
-                                                                            self::getDivider(),
+                                                                            FormService::getDivider(),
                                                                             TextEntry::make('description')
                                                                                 ->hiddenLabel()
                                                                                 ->state($spell->description)
@@ -431,7 +432,7 @@ class CharacterForm
                                                                                     (isset($spell->duration) && $spell->duration != '[]' ? '<b>Duration:</b> '.($spell->duration['duration'] ?? '').' '.($spell->duration['type'] ?? '').($spell->duration['concentration'] ? ', Concentration' : '') : '')
                                                                                 ))
                                                                                 ->html(),
-                                                                            self::getDivider(),
+                                                                            FormService::getDivider(),
                                                                             TextEntry::make('description')
                                                                                 ->hiddenLabel()
                                                                                 ->state($spell->description)
@@ -702,7 +703,7 @@ class CharacterForm
                                                         break;
                                                     }
                                                 }
-                                                $schema[] = self::getDivider();
+                                                $schema[] = FormService::getDivider();
                                                 $feats = [];
                                                 $sortedFeats = collect($bg->feats)->sortBy('granted')->values()->toArray();
 
@@ -822,7 +823,7 @@ class CharacterForm
                                                     $scoreSelect->disableOptionsWhenSelectedInSiblingRepeaterItems();
                                                 }
                                                 $schema[] = $scoreSelect;
-                                                $schema[] = self::getDivider();
+                                                $schema[] = FormService::getDivider();
                                                 $schema[] = TextInput::make('misc_bonus')
                                                     ->label('Miscellaneous bonus')
                                                     ->numeric();
@@ -870,7 +871,7 @@ class CharacterForm
                                         }
                                         $schema[] = Grid::make(5)
                                             ->schema($coins);
-                                        $schema[] = self::getDivider();
+                                        $schema[] = FormService::getDivider();
 
                                         foreach ($inventory['items'] as $item) {
                                             //
@@ -1031,13 +1032,6 @@ class CharacterForm
         }
 
         return false;
-    }
-
-    private static function getDivider(): TextEntry
-    {
-        return TextEntry::make('div')
-            ->hiddenLabel()
-            ->state(new HtmlString('<hr class="border-gray-200 dark:border-gray-700">'));
     }
 
     private static function assignDice(?string $state, Set $set, Get $get, int $id): void

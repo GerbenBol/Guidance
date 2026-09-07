@@ -117,4 +117,8 @@ class Sheet extends Model
     public bool $fixed_hp { get => $this->einfo->use_fixed_hp; }
 
     public int $hp { get => $hp_override ?? SheetService::getHitPoints($this); }
+
+    public int $initiative { get => SheetService::getInitiative($this); }
+
+    public array $skills { get => SheetService::getSkills($this); }
 }
