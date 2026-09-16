@@ -5,9 +5,11 @@ namespace App\Filament\Resources\Characters\Schemas;
 use App\Models\Character;
 use App\Models\Sheet;
 use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Actions;
-use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -26,47 +28,65 @@ class CharacterSheetSchema
                 } elseif (! $record->sheet->isUpToDate()) {
                     $record->sheet->generate();
                 }
+                // dd($record->sheet->abilities);
 
                 return [
-                    Grid::make(12)
+                    Section::make()
                         ->schema([
                             Actions::make([
                                 Action::make('manage')
                                     ->hiddenLabel()
-                                    ->icon(Heroicon::Cog),
+                                    ->tooltip('Manage Character')
+                                    ->icon(Heroicon::Cog)
+                                    ->url('edit'),
                             ])
                                 ->columnSpan(2),
                             TextEntry::make('name')
                                 ->hiddenLabel()
                                 ->formatStateUsing(fn (string $state): string => '<b>'.$state.'</b><br>'.
-                                    '<em>'.implode(' / ', $record->sheet->classes()->pluck('name')->toArray()).'</em>'
+                                    '<em>'.$record->sheet->race->name.' - '.
+                                    implode(' / ', $record->sheet->classes()->pluck('name')->toArray()).'</em>'
                                 )
                                 ->html()
-                                ->columnSpan(10),
+                                ->columnSpan(9),
                         ])
-                        ->columnSpan(3),
-                    // TextEntry::make('name'),
-                    // TextEntry::make('race_id')
-                    //     ->numeric()
-                    //     ->placeholder('-')
-                    //     ->action(
-                    //         Action::make('showRace')
-                    //             ->slideOver()
-                    //             ->schema([
-                    //                 TextEntry::make('race.name'),
-                    //             ])
-                    //     ),
-                    // TextEntry::make('background_id')
-                    //     ->numeric()
-                    //     ->placeholder('-'),
-                    // TextEntry::make('created_at')
-                    //     ->dateTime()
-                    //     ->placeholder('-'),
-                    // TextEntry::make('updated_at')
-                    //     ->dateTime()
-                    //     ->placeholder('-'),
+                        ->columns(12)
+                        ->columnSpan(4),
+                    self::emptySpace()
+                        ->columnSpan(2),
+                    Section::make()
+                        ->schema([
+                            TextInput::make('hp')
+                                ->hiddenLabel()
+                                ->prefixAction(
+                                    Action::make('heal')
+                                        ->hiddenLabel()
+                                        ->icon(Heroicon::Plus)
+                                        ->action(fn ($state) => $record->sheet->hp = dd($record->sheet->hp + $state))
+                                ),
+                        ])
+                        ->columnSpan(6),
+                    Section::make()
+                        ->schema([
+                            RepeatableEntry::make('abilities')
+                                ->hiddenLabel()
+                                ->schema([
+                                    TextEntry::make('ability')
+                                        ->hiddenLabel()
+                                        ->alignCenter(),
+                                ])
+                                ->getStateUsing(fn () => $record->sheet->abilities)
+                                ->grid(6),
+                        ])
+                        ->columnSpan(8),
                 ];
             })
             ->columns(12);
+    }
+
+    private static function emptySpace(): TextEntry
+    {
+        return TextEntry::make('empty')
+            ->hiddenLabel();
     }
 }
