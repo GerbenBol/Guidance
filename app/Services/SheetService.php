@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Character;
 use App\Models\PlayerClass;
 use App\Models\Sheet;
 
@@ -38,5 +39,30 @@ class SheetService
     public static function getSkills(Sheet $record): object|array
     {
         return [];
+    }
+
+    private Sheet $sheet;
+
+    public function __construct(Character $chara)
+    {
+        $sheet = null;
+
+        if (!$chara->sheet) {
+            $sheet = Sheet::create([
+                'character_id' => $chara->id,
+            ]);
+        } elseif (!$chara->sheet->isUpToDate()) {
+            $sheet = $chara->sheet;
+        }
+        $sheet?->generate();
+        $this->sheet = $sheet ?? $chara->sheet;
+    }
+
+    public function get(string $get) {
+        return $this->sheet->$get;
+    }
+
+    public function getCurrent(string $get) {
+        //
     }
 }

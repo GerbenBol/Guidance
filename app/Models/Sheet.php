@@ -16,10 +16,12 @@ class Sheet extends Model
     protected $fillable = [
         'character_id',
         'info',
+        'current',
     ];
 
     protected $casts = [
         'info' => 'object',
+        'current' => 'object',
     ];
 
     public function character(): BelongsTo

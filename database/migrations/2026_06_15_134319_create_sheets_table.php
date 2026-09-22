@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('character_id')->unsigned();
             $table->json('info')->nullable();
+            $table->json('current')->nullable();
 
             $table->foreign('character_id')->references('id')->on('characters')->cascadeOnDelete();
             $table->timestamps();

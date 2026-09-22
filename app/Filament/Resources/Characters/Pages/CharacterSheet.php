@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Characters\Pages;
 
 use App\Filament\Resources\Characters\CharacterResource;
 use App\Filament\Resources\Characters\Schemas\CharacterSheetSchema;
+use App\Services\SheetService;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
@@ -23,7 +24,6 @@ class CharacterSheet extends EditRecord
         return '';
     }
 
-    #[Override]
     protected function getFormActions(): array
     {
         return [];
@@ -31,11 +31,13 @@ class CharacterSheet extends EditRecord
 
     public function infolist(Schema $schema): Schema
     {
-        return CharacterSheetSchema::configure($schema);
+        $serve = new SheetService($this->record);
+        return CharacterSheetSchema::configure($schema, $serve);
     }
 
     public function form(Schema $schema): Schema
     {
-        return CharacterSheetSchema::configure($schema);
+        $serve = new SheetService($this->record);
+        return CharacterSheetSchema::configure($schema, $serve);
     }
 }
