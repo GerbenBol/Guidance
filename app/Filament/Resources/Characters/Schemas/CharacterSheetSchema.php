@@ -8,6 +8,8 @@ use App\Models\Sheet;
 use App\Services\AbilityService;
 use App\Services\SheetService;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\RepeatableEntry;
@@ -46,24 +48,35 @@ class CharacterSheetSchema
                 return [
                     Section::make()
                         ->schema([
-                            Actions::make([
-                                Action::make('manage')
-                                    ->hiddenLabel()
-                                    ->tooltip('Manage Character')
-                                    ->icon(Heroicon::Cog)
-                                    ->url('edit'),
-                            ])
-                                ->columnSpan(2),
+                            Hidden::make('inspiration')
+                                ->default(false),
                             TextEntry::make('name')
                                 ->hiddenLabel()
                                 ->formatStateUsing(fn (string $state): string => '<b>'.$state.'</b><br>'.
                                     '<em>'.$serve->get('race')->name.' - '.
                                     implode(' / ', $record->sheet?->classes()->pluck('name')->toArray() ?? []).'</em>'
                                 )
+                                ->prefixAction(
+                                    Action::make('manage')
+                                        ->hiddenLabel()
+                                        ->tooltip('Manage Character')
+                                        ->icon(Heroicon::Cog)
+                                        ->url('edit'),
+                                )
+                                ->afterContent(
+                                    Actions::make([
+                                        Action::make('inspo')
+                                            ->hiddenLabel()
+                                            ->tooltip(fn (Get $get): string => 'Has inspiration: '.($get('inspiration') ? 'Yes' : 'No'))
+                                            ->icon(fn (Get $get): Heroicon => $get('inspiration') ? Heroicon::Bolt : Heroicon::BoltSlash)
+                                            ->iconButton()
+                                            ->action(fn (Get $get, Set $set) => $set('inspiration', !$get('inspiration')))
+                                    ])
+                                    ->alignCenter()
+                                    ->aboveContent('Inspiration')
+                                )
                                 ->html()
-                                ->columnSpan(9),
                         ])
-                        ->columns(12)
                         ->columnSpan(4),
                     self::emptySpace()
                         ->columnSpan(3),
@@ -109,7 +122,7 @@ class CharacterSheetSchema
                             ->tooltip('Long Rest')
                             ->icon(Heroicon::Moon)
                     ]),
-                    Grid::make('2')
+                    Grid::make(1)
                         ->schema([
                             Section::make()
                                 ->schema([
@@ -137,9 +150,43 @@ class CharacterSheetSchema
                                         ->getStateUsing(fn () => $serve->get('abilities'))
                                         ->grid(6),
                                 ]),
+                            // Section::make()
+                            //     ->schema([
+                            //         //
+                            //     ]),
                             
                         ])
-                        ->columnSpanFull()
+                        ->columnSpan(6),
+                    Grid::make(1)
+                        ->schema([
+                            Section::make()
+                                ->schema([
+                                    Flex::make([
+                                        TextEntry::make('pb')
+                                            ->hiddenLabel()
+                                            ->getStateUsing(fn () => 'Proficiency<br>Bonus<br><span style="font-size:1.5rem">+3</span>')
+                                            ->extraAttributes(['style' => 'text-align:center'])
+                                            ->html(),
+                                        TextEntry::make('speed')
+                                            ->hiddenLabel()
+                                            ->getStateUsing(fn () => 'Walking<br>Speed<br><span style="font-size:1.5rem">30</span>')
+                                            ->extraAttributes(['style' => 'text-align:center'])
+                                            ->html(),
+                                        TextEntry::make('init')
+                                            ->hiddenLabel()
+                                            ->getStateUsing(fn () => 'Initiative<br><span style="font-size:1.5rem">+2</span>')
+                                            ->extraAttributes(['style' => 'text-align:center'])
+                                            ->html(),
+                                        TextEntry::make('ac')
+                                            ->hiddenLabel()
+                                            ->getStateUsing(fn () => 'Armor<br>Class<br><span style="font-size:1.5rem">13</span>')
+                                            ->extraAttributes(['style' => 'text-align:center'])
+                                            ->html()
+                                    ]),
+                                ]),
+                            
+                        ])
+                        ->columnSpan(6)
                 ];
             })
             ->columns(12);
