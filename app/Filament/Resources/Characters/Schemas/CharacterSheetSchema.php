@@ -181,7 +181,15 @@ class CharacterSheetSchema
                                             ->hiddenLabel()
                                             ->getStateUsing(fn () => 'Armor<br>Class<br><span style="font-size:1.5rem">13</span>')
                                             ->extraAttributes(['style' => 'text-align:center'])
-                                            ->html()
+                                            ->html(),
+                                        Actions::make([
+                                            Action::make('defenses')
+                                                ->badge(fn () => 0)
+                                                ->extraAttributes(['style' => 'width:100%;margin-top:-10px']),
+                                            Action::make('conditions')
+                                                ->badge(fn () => 0)
+                                                ->extraAttributes(['style' => 'width:100%;margin-bottom:-10px'])
+                                        ])
                                     ]),
                                 ]),
                             
