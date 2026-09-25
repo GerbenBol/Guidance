@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources\Characters\Schemas;
 
-use App\Enums\Ability;
 use App\Models\Character;
 use App\Models\Sheet;
 use App\Services\AbilityService;
 use App\Services\SheetService;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
@@ -18,14 +17,13 @@ use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Icons\Heroicon;
-
-use function Laravel\Prompts\text;
 
 class CharacterSheetSchema
 {
@@ -70,12 +68,12 @@ class CharacterSheetSchema
                                             ->tooltip(fn (Get $get): string => 'Has inspiration: '.($get('inspiration') ? 'Yes' : 'No'))
                                             ->icon(fn (Get $get): Heroicon => $get('inspiration') ? Heroicon::Bolt : Heroicon::BoltSlash)
                                             ->iconButton()
-                                            ->action(fn (Get $get, Set $set) => $set('inspiration', !$get('inspiration')))
+                                            ->action(fn (Get $get, Set $set) => $set('inspiration', ! $get('inspiration'))),
                                     ])
-                                    ->alignCenter()
-                                    ->aboveContent('Inspiration')
+                                        ->alignCenter()
+                                        ->aboveContent('Inspiration')
                                 )
-                                ->html()
+                                ->html(),
                         ])
                         ->columnSpan(4),
                     self::emptySpace()
@@ -90,7 +88,7 @@ class CharacterSheetSchema
                                         Action::make('heal')
                                             ->hiddenLabel()
                                             ->icon(Heroicon::Plus)
-                                            // ->action(fn ($state) => $serve->get('hp') = $serve->get('hp') + $state)
+                                        // ->action(fn ($state) => $serve->get('hp') = $serve->get('hp') + $state)
                                     )
                                     ->suffixAction(
                                         Action::make('damage')
@@ -108,8 +106,8 @@ class CharacterSheetSchema
                                     ->state(fn () => 'Temp: '.($serve->get('temp_hp') ?? '--'))
                                     ->size(TextSize::Large)
                                     ->alignCenter()
-                                    ->grow(false)
-                            ])
+                                    ->grow(false),
+                            ]),
                         ])
                         ->columnSpan(4),
                     Actions::make([
@@ -120,7 +118,7 @@ class CharacterSheetSchema
                         Action::make('long_rest')
                             ->hiddenLabel()
                             ->tooltip('Long Rest')
-                            ->icon(Heroicon::Moon)
+                            ->icon(Heroicon::Moon),
                     ]),
                     Grid::make(1)
                         ->schema([
@@ -134,7 +132,7 @@ class CharacterSheetSchema
                                                 ->alignCenter()
                                                 ->size(TextSize::Small)
                                                 ->formatStateUsing(fn ($state): string => AbilityService::short($state))
-                                                ->extraAttributes(['style' => 'margin-top:-5px;']),
+                                                ->extraAttributes(['style' => 'margin-top:-5px']),
                                             TextEntry::make('mod')
                                                 ->hiddenLabel()
                                                 ->alignCenter()
@@ -145,7 +143,7 @@ class CharacterSheetSchema
                                                 ->hiddenLabel()
                                                 ->alignCenter()
                                                 ->size(TextSize::Small)
-                                                ->extraAttributes(['style' => 'margin-top:-15px;border:1px solid white;border-radius:5px'])
+                                                ->extraAttributes(['style' => 'margin-top:-15px;border:1px solid white;border-radius:5px']),
                                         ])
                                         ->getStateUsing(fn () => $serve->get('abilities'))
                                         ->grid(6),
@@ -154,7 +152,7 @@ class CharacterSheetSchema
                             //     ->schema([
                             //         //
                             //     ]),
-                            
+
                         ])
                         ->columnSpan(6),
                     Grid::make(1)
@@ -184,23 +182,110 @@ class CharacterSheetSchema
                                             ->html(),
                                         Actions::make([
                                             Action::make('defenses')
-                                                ->badge(fn () => 0)
+                                                ->badge(fn () => $serve->get('defenses') ?? null)
                                                 ->extraAttributes(['style' => 'width:100%;margin-top:-10px']),
                                             Action::make('conditions')
-                                                ->badge(fn () => 0)
-                                                ->extraAttributes(['style' => 'width:100%;margin-bottom:-10px'])
-                                        ])
+                                                ->badge(fn () => $serve->get('conditions') ?? null)
+                                                ->extraAttributes(['style' => 'width:100%']),
+                                        ]),
                                     ]),
                                 ]),
-                            
+
                         ])
-                        ->columnSpan(6)
+                        ->columnSpan(6),
+                    Hidden::make('layout'),
+                    Section::make()
+                        ->schema(function (Get $get): array {
+                            $schema = [];
+                            $layout = json_decode($get('layout'));
+
+                            if ($layout) {
+                                foreach ($layout->containers as $id => $container) {
+                                    $tabs = 'tabs'.$id;
+                                    $$tabs = [];
+
+                                    foreach ($container->tabs as $tab) {
+                                        $$tabs[] = Tab::make($tab)
+                                            ->label(match ($tab) {
+                                                'prof' => 'Proficiencies',
+                                                'actions' => 'Actions',
+                                                default => ''
+                                            })
+                                            ->schema([
+                                                TextInput::make($tabs),
+                                            ]);
+                                    }
+
+                                    $schema[] = Tabs::make()
+                                        ->tabs($$tabs)
+                                        ->contained(false);
+                                }
+                            }
+
+                            $schema[] = Action::make('reorder')
+                                ->hiddenLabel()
+                                ->icon(Heroicon::RectangleGroup) // Map || EllipsisVertical
+                                ->extraAttributes(['style' => 'position:absolute; top:10px; right:10px; z-index:10'])
+                                ->schema([
+                                    TextInput::make('tabs_amount')
+                                        ->label('Amount of containers')
+                                        ->inlineLabel()
+                                        ->numeric()
+                                        ->live()
+                                        ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                            $amount = $state ?? 1;
+                                            $current = $get('containers') ?? [];
+
+                                            while (count($current) < $amount) {
+                                                $current[] = ['tabs' => []];
+                                            }
+
+                                            while (count($current) > $amount) {
+                                                array_pop($current);
+                                            }
+                                            $set('containers', $current);
+                                        }),
+                                    Repeater::make('containers')
+                                        ->hiddenLabel()
+                                        ->schema([
+                                            CheckboxList::make('tabs')
+                                                ->hiddenLabel()
+                                                ->options([
+                                                    'prof' => 'Proficiencies',
+                                                    'actions' => 'Actions',
+                                                ])
+                                                ->live()
+                                                ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                                        ])
+                                        ->itemLabel(fn (int $index) => 'Container '.($index + 1))
+                                        ->addable(false)
+                                        ->deletable(false)
+                                        ->reorderable(false)
+                                        ->grid(fn (Get $get): int => min($get('tabs_amount') ?? 1, 5)),
+                                ])
+                                ->fillForm(fn (Get $get): array => json_decode($get('layout'), true))
+                                ->action(fn (array $data, Set $set) => $set('layout', json_encode($data)));
+
+                            return $schema;
+                        })
+                        ->extraAttributes(['style' => 'position:relative'])
+                        ->columns(function (Get $get): int {
+                            $layout = json_decode($get('layout'));
+
+                            if ($layout) {
+                                return $layout->tabs_amount ?? 1;
+                            }
+
+                            return 1;
+                        })
+                        ->columnSpanFull(),
                 ];
             })
             ->columns(12);
     }
 
-    private static function emptySpace(): TextEntry {
+    private static function emptySpace(): TextEntry
+    {
         return TextEntry::make('empty')
             ->hiddenLabel();
     }

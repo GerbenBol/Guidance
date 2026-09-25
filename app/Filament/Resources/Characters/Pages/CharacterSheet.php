@@ -8,7 +8,6 @@ use App\Services\SheetService;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;
-use Override;
 
 class CharacterSheet extends EditRecord
 {
@@ -32,12 +31,14 @@ class CharacterSheet extends EditRecord
     public function infolist(Schema $schema): Schema
     {
         $serve = new SheetService($this->record);
+
         return CharacterSheetSchema::configure($schema, $serve);
     }
 
     public function form(Schema $schema): Schema
     {
         $serve = new SheetService($this->record);
+
         return CharacterSheetSchema::configure($schema, $serve);
     }
 }

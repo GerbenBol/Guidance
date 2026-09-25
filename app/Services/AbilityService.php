@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\Ability;
-
 class AbilityService
 {
     public static function scoreToModifier(int $score): int
@@ -18,7 +16,8 @@ class AbilityService
         return $mod >= 0 ? '+'.$mod : $mod;
     }
 
-    public static function short(string $ability): string {
+    public static function short(string $ability): string
+    {
         return match (strtolower($ability)) {
             'strength' => 'STR',
             'dexterity' => 'DEX',

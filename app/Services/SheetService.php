@@ -47,22 +47,24 @@ class SheetService
     {
         $sheet = null;
 
-        if (!$chara->sheet) {
+        if (! $chara->sheet) {
             $sheet = Sheet::create([
                 'character_id' => $chara->id,
             ]);
-        } elseif (!$chara->sheet->isUpToDate()) {
+        } elseif (! $chara->sheet->isUpToDate()) {
             $sheet = $chara->sheet;
         }
         $sheet?->generate();
         $this->sheet = $sheet ?? $chara->sheet;
     }
 
-    public function get(string $get) {
+    public function get(string $get)
+    {
         return $this->sheet->$get;
     }
 
-    public function getCurrent(string $get) {
+    public function getCurrent(string $get)
+    {
         //
     }
 }
