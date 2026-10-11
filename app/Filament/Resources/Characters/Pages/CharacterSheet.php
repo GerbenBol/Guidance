@@ -41,4 +41,11 @@ class CharacterSheet extends EditRecord
 
         return CharacterSheetSchema::configure($schema, $serve);
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['layout'] = $data['layout'] ?? '{"tabs_amount":2,"containers":[{"tabs":["prof"]},{"tabs":["features","actions"]}]}';
+
+        return parent::mutateFormDataBeforeFill($data);
+    }
 }

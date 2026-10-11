@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Feat extends Model
 {
@@ -18,17 +19,20 @@ class Feat extends Model
         'user_id',
         'description',
         'short_desc',
-        'features',
         'requirements',
     ];
 
     protected $casts = [
-        'features' => 'array',
         'requirements' => 'array',
     ];
 
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function features(): MorphMany
+    {
+        return $this->morphMany(Feature::class, 'parent');
     }
 }

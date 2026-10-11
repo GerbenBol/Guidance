@@ -144,6 +144,7 @@ class FormService
     {
         return Repeater::make('features')
             ->hiddenLabel()
+            ->relationship('features')
             ->schema(self::getFeatureForm($includedInputs))
             ->columns(4)
             ->reorderable()
@@ -265,10 +266,10 @@ class FormService
                     ->addActionLabel('Add mechanic')
                     ->cloneable()
                     ->columnSpanFull(),
-                'replaces' => Checkbox::make($input),
-                'show_in_actions' => Checkbox::make($input),
-                'has_active' => Checkbox::make($input),
-                'optional_feature' => Checkbox::make($input),
+                // 'replaces' => Checkbox::make($input),
+                // 'show_in_actions' => Checkbox::make($input),
+                // 'has_active' => Checkbox::make($input),
+                // 'optional_feature' => Checkbox::make($input),
                 default => Hidden::make($input),
             };
         }

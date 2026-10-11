@@ -38,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName(env('APP_NAME', config('app.name', 'dnd-app-thing-temp-name')))
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Yellow,
             ])
             // ->unsavedChangesAlerts()
             ->sidebarCollapsibleOnDesktop()
@@ -50,7 +50,7 @@ class AdminPanelProvider extends PanelProvider
             ->userMenuItems([
                 'profile' => fn (Action $action) => $action
                     ->icon(null)
-                    ->label(new HtmlString('<div style="display:flex;"><img src="'.Filament::getUserAvatarUrl(Auth::user()).'" style="height:20px;margin-right:10px;" />'.Auth::user()->name.'</div>'))
+                    ->label(new HtmlString('<div style="display:flex;"><img src="'.Filament::getUserAvatarUrl(Auth::user()).'" style="height:20px;margin-right:10px;border-radius:50px" />'.Auth::user()->name.'</div>'))
                     ->url(UserResource::getUrl('edit', [Auth::user()->id])),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

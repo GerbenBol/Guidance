@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace DatabaseSeeders;
 
 use App\Models\Background;
 use App\Models\Character;
@@ -30,7 +30,7 @@ class TempTestingSeeder extends Seeder
             'name' => 'OG',
             'user_id' => 1,
             'class_info' => ['prof' => [['type' => 'skill', 'amount' => 3, 'options' => [3, 6, 4, 8, 16, 17, 13]]], 'asi_lvls' => [4, 8, 12, 16], 'equipment' => [['items' => [['name' => 'Explorer\'s Pack', 'pack' => [['item' => null, 'amount' => null]], 'type' => 'pack'], ['type' => 'gp', 'amount' => 2]]], ['items' => [['item' => null, 'type' => 'item', 'amount' => 4], ['type' => 'item-choice', 'items' => [], 'amount' => 1]]], ['items' => [['type' => 'gp', 'amount' => 115]]]], 'save_prof' => ['constitution', 'intelligence'], 'subclass_name' => 'Original Gang Strength', 'multiclass_prof' => [['type' => 'skill', 'amount' => 1, 'options' => [3, 6, 4, 8, 16, 17, 13]]], 'primary_ability' => 'dexterity', 'secondary_ability' => 'constitution', 'subclass_start_lvl' => 3],
-            'spell_info' => ['spells' => [1, 2, 3], 'spellslots' => '{\"1\":{\"1\":2},\"2\":{\"1\":3},\"3\":{\"1\":3,\"2\":2},\"4\":{\"1\":4,\"2\":3},\"5\":{\"1\":4,\"2\":3,\"3\":2},\"6\":{},\"7\":{},\"8\":{},\"9\":{},\"10\":{},\"11\":{},\"12\":{},\"13\":{},\"14\":{},\"15\":{},\"16\":{},\"17\":{},\"18\":{},\"19\":{},\"20\":{}}', 'spell_ability' => 'intelligence', 'can_cast_spells' => true, 'has_own_spelllist' => true, 'regains_spells_on' => 'lr', 'knows_full_spelllist' => false, 'known_prepared_amounts' => '{\"1\":{\"cantrips\":3,\"spells\":7},\"8\":{\"cantrips\":4}}'],
+            'spell_info' => ['spells' => [1, 2, 3], 'spellslots' => '{"1":{"1":2},"2":{"1":3},"3":{"1":3,"2":2},"4":{"1":4,"2":3},"5":{"1":4,"2":3,"3":2},"6":{},"7":{},"8":{},"9":{},"10":{},"11":{},"12":{},"13":{},"14":{},"15":{},"16":{},"17":{},"18":{},"19":{},"20":{}}', 'spell_ability' => 'intelligence', 'can_cast_spells' => true, 'has_own_spelllist' => true, 'regains_spells_on' => 'lr', 'knows_full_spelllist' => false, 'known_prepared_amounts' => '{"1":{"cantrips":3,"spells":7},"8":{"cantrips":4}}'],
             'hit_die' => 'd6',
             'max_levels' => 20,
         ]);
@@ -44,15 +44,28 @@ class TempTestingSeeder extends Seeder
         ]);
         Feat::create([
             'name' => 'TestFeat',
-            'features' => [['name' => null, 'snippet' => null, 'replaces' => false, 'mechanics' => [['note' => null, 'grant' => null, 'choice' => false, 'modifier_validated' => 0]], 'has_active' => false, 'description' => null, 'show_in_actions' => false]],
             'user_id' => 1,
         ]);
         Race::create([
             'name' => 'TestRace',
             'short_desc' => 'this race does stuff',
             'description' => 'this race does stuff but this is a more detailed description',
-            'features' => [['name' => 'feature you get on level 1', 'level' => 1, 'snippet' => null, 'replaces' => false, 'mechanics' => [['note' => null, 'grant' => 'dadv', 'choice' => true, 'options' => ['skill-2', 'skill-4', 'skill-12', 'skill-11'], 'modifier_validated' => 0]], 'has_active' => false, 'description' => 'its something that does something in a specific case', 'show_in_actions' => false, 'optional_feature' => false], ['name' => 'one more race feature', 'level' => 1, 'snippet' => null, 'replaces' => false, 'mechanics' => [['note' => null, 'grant' => null, 'choice' => false, 'modifier_validated' => 0]], 'has_active' => false, 'description' => 'wowie now i can do this thing', 'show_in_actions' => false, 'optional_feature' => false]],
             'user_id' => 1,
+        ]);
+        Race::where('name', 'TestRace')->features()->create([
+            'name' => 'feature you get on level 1',
+            'level' => 1,
+            'snippet' => null,
+            'mechanics' => [['note' => null, 'grant' => 'dadv', 'choice' => true, 'options' => ['skill-2', 'skill-4', 'skill-12', 'skill-11'], 'modifier_validated' => 0]],
+            'description' => 'its something that does something in a specific case',
+        ]);
+        Race::where('name', 'TestRace')->features()->create([
+            'name' => 'one more race feature',
+            'level' => 1,
+            'snippet' => null,
+            'replaces' => false,
+            'mechanics' => [['note' => null, 'grant' => null, 'choice' => false, 'modifier_validated' => 0]],
+            'description' => 'wowie now i can do this thing',
         ]);
         Spell::create([
             'name' => 'TestSpell',

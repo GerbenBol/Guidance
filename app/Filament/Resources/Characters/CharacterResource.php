@@ -51,9 +51,9 @@ class CharacterResource extends Resource
         return [
             'index' => ListCharacters::route('/'),
             'create' => CreateCharacter::route('/create'),
-            'view' => ViewCharacter::route('/{record}'),
+            'view' => ViewCharacter::route('/{record}/view'),
             'edit' => EditCharacter::route('/{record}/edit'),
-            'sheet' => CharacterSheet::route('/{record}/sheet'),
+            'sheet' => CharacterSheet::route('/{record}'),
         ];
     }
 }

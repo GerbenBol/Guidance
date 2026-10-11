@@ -52,4 +52,20 @@ class ModifierService
 
         return $modifiers;
     }
+
+    public static function mechanicToText(array $mechanic): string
+    {
+        $text = match ($mechanic['grant']) {
+            default => ''
+        }.' ';
+        dd($mechanic);
+
+        if ($mechanic['choice']) {
+            //
+        } else {
+            $text .= $mechanic['on'];
+        }
+
+        return $text;
+    }
 }

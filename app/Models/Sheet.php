@@ -6,6 +6,7 @@ use App\Services\SheetService;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -27,6 +28,11 @@ class Sheet extends Model
     public function character(): BelongsTo
     {
         return $this->belongsTo(Character::class, 'character_id');
+    }
+
+    public function features(): HasMany
+    {
+        return $this->hasMany(SheetFeature::class);
     }
 
     public function isUpToDate(): bool

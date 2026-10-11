@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\CanBePrivate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PlayerClass extends Model
 {
@@ -18,7 +19,6 @@ class PlayerClass extends Model
         'short_desc',
         'description',
         'class_info',
-        'features',
         'spell_info',
         'hit_die',
         'max_levels',
@@ -27,13 +27,17 @@ class PlayerClass extends Model
 
     protected $casts = [
         'class_info' => 'object',
-        'features' => 'array',
         'spell_info' => 'object',
     ];
 
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function features(): MorphMany
+    {
+        return $this->morphMany(Feature::class, 'parent');
     }
 
     public function preparedSpellsAtLevel(int $level = 1): int

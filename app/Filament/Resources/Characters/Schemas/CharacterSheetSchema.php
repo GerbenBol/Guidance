@@ -195,7 +195,7 @@ class CharacterSheetSchema
                         ->columnSpan(6),
                     Hidden::make('layout'),
                     Section::make()
-                        ->schema(function (Get $get): array {
+                        ->schema(function (Get $get) use ($serve): array {
                             $schema = [];
                             $layout = json_decode($get('layout'));
 
@@ -209,11 +209,10 @@ class CharacterSheetSchema
                                             ->label(match ($tab) {
                                                 'prof' => 'Proficiencies',
                                                 'actions' => 'Actions',
+                                                'features' => 'Features',
                                                 default => ''
                                             })
-                                            ->schema([
-                                                TextInput::make($tabs),
-                                            ]);
+                                            ->schema($serve->getTabSchema($tab));
                                     }
 
                                     $schema[] = Tabs::make()
@@ -232,6 +231,7 @@ class CharacterSheetSchema
                                         ->inlineLabel()
                                         ->numeric()
                                         ->live()
+                                        ->default(1)
                                         ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                             $amount = $state ?? 1;
                                             $current = $get('containers') ?? [];
@@ -253,6 +253,7 @@ class CharacterSheetSchema
                                                 ->options([
                                                     'prof' => 'Proficiencies',
                                                     'actions' => 'Actions',
+                                                    'features' => 'Features',
                                                 ])
                                                 ->live()
                                                 ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
@@ -263,7 +264,7 @@ class CharacterSheetSchema
                                         ->reorderable(false)
                                         ->grid(fn (Get $get): int => min($get('tabs_amount') ?? 1, 5)),
                                 ])
-                                ->fillForm(fn (Get $get): array => json_decode($get('layout'), true))
+                                ->fillForm(fn (Get $get): array => json_decode($get('layout'), true) ?? [])
                                 ->action(fn (array $data, Set $set) => $set('layout', json_encode($data)));
 
                             return $schema;
