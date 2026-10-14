@@ -124,6 +124,8 @@ class CharacterForm
                             ])
                     ),
                 Wizard::make(function (Get $get): array {
+                    $primaryClass = null;
+
                     if ($get('classes')) {
                         foreach ($get('classes') as $class) {
                             $primaryClass = PlayerClass::find($class['id']);
@@ -848,7 +850,7 @@ class CharacterForm
                                             ->reorderable(false)
                                             ->deletable(false)
                                             ->addable(false)
-                                            ->default('[{"ability":"Strength"},{"ability":"Dexterity"},{"ability":"Constitution"},{"ability":"Intelligence"},{"ability":"Wisdom"},{"ability":"Charisma"}]'),
+                                            ->default([['ability' => 'Strength'], ['ability' => 'Dexterity'], ['ability' => 'Constitution'], ['ability' => 'Intelligence'], ['ability' => 'Wisdom'], ['ability' => 'Charisma']]),
                                     ])
                                     ->secondary()
                                     ->hidden(fn (Get $get): bool => ! $get('gen_method')),
@@ -861,7 +863,7 @@ class CharacterForm
                                 Section::make('Inventory')
                                     ->schema(function (Get $get): array {
                                         $schema = $coins = [];
-                                        $inventory = $get('inventory');
+                                        $inventory = $get('inventory') ?? [];
                                         $coinOrder = ['cp', 'sp', 'gp', 'ep', 'pp'];
 
                                         foreach ($coinOrder as $coin) {
@@ -874,14 +876,14 @@ class CharacterForm
                                                     'ep' => 'Electrum',
                                                     'pp' => 'Platinum',
                                                     default => ''
-                                                }.': '.$inventory['coin'][$coin])
+                                                }.': '.($inventory['coin'][$coin] ?? ''))
                                                 ->alignCenter();
                                         }
                                         $schema[] = Grid::make(5)
                                             ->schema($coins);
                                         $schema[] = FormService::getDivider();
 
-                                        foreach ($inventory['items'] as $item) {
+                                        foreach ($inventory['items'] ?? [] as $item) {
                                             //
                                         }
 
