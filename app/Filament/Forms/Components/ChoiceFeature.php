@@ -4,7 +4,6 @@ namespace App\Filament\Forms\Components;
 
 use App\Models\Feature;
 use Filament\Forms\Components\Field;
-use Filament\Support\Components\Attributes\ExposedLivewireMethod;
 
 class ChoiceFeature extends Field
 {

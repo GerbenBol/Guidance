@@ -28,7 +28,7 @@ new class extends Component implements HasForms
                     ->hiddenLabel()
                     ->live()
                     ->prefix(match (preg_replace('/\d/', '', $this->name)) {
-                        default => preg_replace('/\d/', '', $this->name),
+                        default => ucfirst(preg_replace('/\d/', '', $this->name)),
                         'adv' => 'Advantage',
                         'dadv' => 'Disadvantage',
                         'mod' => 'Modifier',
@@ -36,7 +36,6 @@ new class extends Component implements HasForms
                         'vul' => 'Vulnerability',
                         'imm' => 'Immunity',
                         'prof' => 'Proficiency',
-                        'sense' => 'Sense',
                         'lang' => 'Language',
                         'wm' => 'Weapon Mastery',
                     }.' Choice')

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Characters\Schemas;
 
 use App\Filament\Forms\Components\ChoiceFeature;
-use App\Filament\Forms\Components\ClassFeature;
 use App\Filament\Forms\Components\CoreTrait;
 use App\Models\Background;
 use App\Models\Character;
@@ -297,25 +296,14 @@ class CharacterForm
                                                                 ];
                                                             }
                                                         }
-                                                        $schema[] = CoreTrait::make('Core Traits Primary Class')
-                                                            ->classId($class->id);
 
                                                         $core['level'] = 1;
-                                                        $features = ['1' => [$core]];
+                                                        $schema[] = CoreTrait::make('Core Traits Primary Class')
+                                                            ->hiddenLabel()
+                                                            ->refereToTrait($core)
+                                                            ->allMechanics($core['mechanics'])
+                                                            ->classId($class->id);
 
-                                                        // foreach (($class->features ?? []) as $feature) {
-                                                        //     $features[$feature['level']][] = $feature;
-                                                        // }
-
-                                                        // foreach ($features as $level) {
-                                                        //     foreach ($level as $feature) {
-                                                        //         $schema[] = ClassFeature::make($feature['name'])
-                                                        //             ->hiddenLabel()
-                                                        //             ->visible(fn (Get $get): bool => $feature['level'] <= $get('level'))
-                                                        //             ->referesToFeature($feature)
-                                                        //             ->allMechanics($state['mechanics'] ?? []);
-                                                        //     }
-                                                        // }
                                                         foreach ($class->features()?->orderBy('level')->get() ?? [] as $feature) {
                                                             $schema[] = ChoiceFeature::make($feature->name)
                                                                 ->hiddenLabel()
@@ -543,10 +531,10 @@ class CharacterForm
 
                                             try {
                                                 foreach ($race->features as $feature) {
-                                                    // $schema[] = ClassFeature::make($feature['name'])
-                                                    //     ->hiddenLabel()
-                                                    //     ->referesToFeature($feature)
-                                                    //     ->allMechanics($state['race_options'] ?? []);
+                                                    $schema[] = ChoiceFeature::make($feature->name)
+                                                        ->hiddenLabel()
+                                                        ->referesTo($feature)
+                                                        ->allMechanics($state['mechanics'] ?? []);
                                                 }
                                             } catch (\Exception $e) {
                                                 $set('race_id', null);
