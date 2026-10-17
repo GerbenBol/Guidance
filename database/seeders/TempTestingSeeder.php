@@ -1,6 +1,6 @@
 <?php
 
-namespace DatabaseSeeders;
+namespace Database\Seeders;
 
 use App\Models\Background;
 use App\Models\Character;
@@ -52,18 +52,17 @@ class TempTestingSeeder extends Seeder
             'description' => 'this race does stuff but this is a more detailed description',
             'user_id' => 1,
         ]);
-        Race::where('name', 'TestRace')->features()->create([
+        Race::where('name', 'TestRace')->first()->features()->create([
             'name' => 'feature you get on level 1',
             'level' => 1,
             'snippet' => null,
             'mechanics' => [['note' => null, 'grant' => 'dadv', 'choice' => true, 'options' => ['skill-2', 'skill-4', 'skill-12', 'skill-11'], 'modifier_validated' => 0]],
             'description' => 'its something that does something in a specific case',
         ]);
-        Race::where('name', 'TestRace')->features()->create([
+        Race::where('name', 'TestRace')->first()->features()->create([
             'name' => 'one more race feature',
             'level' => 1,
             'snippet' => null,
-            'replaces' => false,
             'mechanics' => [['note' => null, 'grant' => null, 'choice' => false, 'modifier_validated' => 0]],
             'description' => 'wowie now i can do this thing',
         ]);
