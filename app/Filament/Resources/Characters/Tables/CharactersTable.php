@@ -24,24 +24,11 @@ class CharactersTable
                 TextColumn::make('name')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('race.name')
-                    ->numeric()
+                TextColumn::make('classes')
+                    ->formatStateUsing(fn (array $state): string => PlayerClass::find($state['id'])->name)
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('classes')
-                    ->numeric()
-                    // ->formatStateUsing(fn ($state) => json_encode($state))
-                    ->formatStateUsing(function ($state, Character $record): string {
-                        // $classes = '';
-
-                        // foreach ($record->classes() as $class) {
-                        //     $classes .= $class->name.', ';
-                        // }
-
-                        // return substr($classes, 0, strlen($classes) - 2);
-                        Log::info(implode(', ', $record->classes()->pluck('name')->toArray()));
-                        return implode(', ', $record->classes()->pluck('name')->toArray());
-                    })
+                TextColumn::make('race.name')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('player.name')
@@ -56,14 +43,11 @@ class CharactersTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
             ->recordActions([
                 Action::make('openSheet')
                     ->label('Sheet')
                     ->icon(Heroicon::BookOpen)
-                    ->url(fn ($record) => CharacterSheet::getUrl(['record' => $record->id])),
+                    ->url(fn (Character $record) => CharacterSheet::getUrl(['record' => $record->id])),
                 EditAction::make(),
             ])
             ->recordUrl(fn (Character $record) => CharacterSheet::getUrl(['record' => $record->id]));
