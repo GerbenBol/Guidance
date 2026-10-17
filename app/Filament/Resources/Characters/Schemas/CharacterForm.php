@@ -291,8 +291,8 @@ class CharacterForm
                                                             for ($i = 0; $i < $prof->amount; $i++) {
                                                                 $core['mechanics'][] = [
                                                                     'choice' => true,
-                                                                    'grant' => $prof->type,
-                                                                    'options' => $prof->options,
+                                                                    'grant' => 'prof',
+                                                                    'options' => collect($prof->options)->map(fn ($item) => $prof->type.'-'.$item),
                                                                 ];
                                                             }
                                                         }
@@ -301,7 +301,7 @@ class CharacterForm
                                                         $schema[] = CoreTrait::make('Core Traits Primary Class')
                                                             ->hiddenLabel()
                                                             ->refereToTrait($core)
-                                                            ->allMechanics($core['mechanics'])
+                                                            ->allMechanics($state['mechanics'] ?? [])
                                                             ->classId($class->id);
 
                                                         foreach ($class->features()?->orderBy('level')->get() ?? [] as $feature) {

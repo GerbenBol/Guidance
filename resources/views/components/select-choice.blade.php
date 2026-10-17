@@ -16,7 +16,7 @@ new class extends Component implements HasForms
     public string $name;
     public array $options = [];
 
-    public function mount(?int $value = null): void {
+    public function mount(string|int|null $value = null): void {
         $this->value = $value;
         $this->form->fill(['value' => $value]);
     }

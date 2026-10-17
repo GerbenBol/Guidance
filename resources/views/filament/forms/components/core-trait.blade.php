@@ -46,7 +46,7 @@
                 @livewire('select-choice', [
                     'name' => $mechanic['grant'].$id,
                     'options' => App\Services\FormService::mechanicOptions($mechanic),
-                    'type' => 'class-core',
+                    'type' => 'class',
                     'id' => $classId,
                     'value' => $allMechanics[$mechanic['grant'].$id] ?? null,
                 ], key($classId.'-'.$trait['name'].'-'.$mechanic['grant'].$id))
