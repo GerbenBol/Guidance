@@ -4,8 +4,8 @@
 >
     @php
         $key = $getKey();
-        $feature = $field->getFeature();
-        $allMechanics = $field->getMechanics();
+        $feature = $field->feature;
+        $allMechanics = $field->mechanics;
         $parent = $feature->parent;
         $pendingChoices = $totalChoices = 0;
         $choices = false;
@@ -45,11 +45,7 @@
                 <br>
                 @livewire('select-choice', [
                     'name' => $feature->id.$mechanic['grant'].$id,
-                    // 'options' => match ($mechanic['grant']) {
-                    //     default => [0 => 'Couldn\'t find options.'],
-                    //     'skill' => App\Models\Skill::find($mechanic['options'])->pluck('name', 'id')->toArray(),
-                    // },
-                    'options' => $field->mechanicOptions($mechanic),
+                    'options' => App\Services\FormService::mechanicOptions($mechanic),
                     'type' => match (get_class($parent)) {
                         default => 'unknown',
                         App\Models\PlayerClass::class => 'class',

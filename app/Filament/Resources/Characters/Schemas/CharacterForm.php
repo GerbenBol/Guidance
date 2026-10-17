@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Characters\Schemas;
 
 use App\Filament\Forms\Components\ChoiceFeature;
 use App\Filament\Forms\Components\ClassFeature;
+use App\Filament\Forms\Components\CoreTrait;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\Feat;
@@ -296,6 +297,8 @@ class CharacterForm
                                                                 ];
                                                             }
                                                         }
+                                                        $schema[] = CoreTrait::make('Core Traits Primary Class')
+                                                            ->classId($class->id);
 
                                                         $core['level'] = 1;
                                                         $features = ['1' => [$core]];

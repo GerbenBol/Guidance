@@ -358,6 +358,53 @@ class FormService
             ->state(new HtmlString('<hr class="border-gray-200 dark:border-gray-700">'));
     }
 
+    public static function mechanicOptions(array $mechanic): array
+    {
+        $options = [];
+
+        foreach ($mechanic['options'] ?? [] as $opt) {
+            if (str_contains($opt, '-')) {
+                $explopt = explode('-', $opt);
+                $options[$opt] = match ($explopt[0]) {
+                    default => $opt,
+                    'skill' => self::pluck(Skill::class, $explopt[1]),
+                    'abi' => ucfirst($explopt[1]),
+                    'save' => ucfirst($explopt[1]).' Save',
+                    'atkabi' => ucfirst($explopt[1]).' Attacks',
+                    'dmgabi' => ucfirst($explopt[1]).' Damage Rolls',
+                    'dmgtype' => self::pluck(DamageType::class, $explopt[1]),
+                    // 'cond' => Condition,
+                    // 'tool' => Tools,
+                    // 'weapontype' => weapontype attacks,
+                    // 'weapon' => Weapons,
+                };
+            } else {
+                $options[$opt] = match ($opt) {
+                    default => $opt,
+                    'walk' => 'Walking Speed',
+                    'climb' => 'Climbing Speed',
+                    'fly' => 'Flying Speed',
+                    'swim' => 'Swimming Speed',
+                    'burrow' => 'Burrowing Speed',
+                    'init' => 'Initiative',
+                    'ac' => 'Armor Class',
+                    'magsleep' => 'Magical Sleep',
+                    'blind' => 'Blindsight',
+                    'true' => 'Truesight',
+                    'dark' => 'Darkvision',
+                    'tremor' => 'Tremorsense',
+                };
+            }
+        }
+
+        return count($options) > 0 ? $options : [0 => 'No options assigned.'];
+    }
+
+    private static function pluck(string $model, int $id): string
+    {
+        return $model::find($id)->name;
+    }
+
     private static function getModifierOptions(?string $input): array
     {
         $abilities = self::addPrefixToIDs('abi', Ability::toArray());

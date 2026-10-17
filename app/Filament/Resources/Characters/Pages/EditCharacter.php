@@ -90,11 +90,6 @@ class EditCharacter extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // $data['bg_equipment'] = $data['background_options']['equip'] ?? [];
-
-        // foreach ($data['background_options']['equip-choice'] ?? [] as $opt => $val) {
-        //     $data[$opt] = $val;
-        // }
         $data['gen_method'] = $data['extra_info']['gen_method'] ?? null;
         $data['used_points'] = $data['extra_info']['used_points'] ?? null;
         $data['scores'] = $data['extra_info']['scores'] ?? [];
@@ -118,7 +113,12 @@ class EditCharacter extends EditRecord
     public function onChoiceUpdate(string $name, string $type, string|int $id, mixed $value): void
     {
         if ($type == 'class') {
-            $this->data['classes'][$id]['mechanics'][$name] = $value;
+            foreach ($this->data['classes'] as $index => $class) {
+                if ($class['id'] == $id) {
+                    $this->data['classes'][$index]['mechanics'][$name] = $value;
+                    break;
+                }
+            }
         } elseif ($type == 'race') {
             $this->data['race_options'][$name] = $value;
         } elseif ($type == 'bg') {

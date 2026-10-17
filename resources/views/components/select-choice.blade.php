@@ -10,7 +10,7 @@ new class extends Component implements HasForms
 {
     use InteractsWithForms;
 
-    public ?int $value;
+    public string|int|null $value;
     public string $type;
     public string|int $id;
     public string $name;
@@ -27,7 +27,19 @@ new class extends Component implements HasForms
                 Select::make('value')
                     ->hiddenLabel()
                     ->live()
-                    ->prefix('Choose a '.preg_replace('/\d/', '', ucfirst($this->name)))
+                    ->prefix(match (preg_replace('/\d/', '', $this->name)) {
+                        default => preg_replace('/\d/', '', $this->name),
+                        'adv' => 'Advantage',
+                        'dadv' => 'Disadvantage',
+                        'mod' => 'Modifier',
+                        'res' => 'Resistance',
+                        'vul' => 'Vulnerability',
+                        'imm' => 'Immunity',
+                        'prof' => 'Proficiency',
+                        'sense' => 'Sense',
+                        'lang' => 'Language',
+                        'wm' => 'Weapon Mastery',
+                    }.' Choice')
                     ->options($this->options)
                     ->searchable(),
             ]);
