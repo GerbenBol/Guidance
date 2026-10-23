@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
+
 class ModifierService
 {
     public static function validateModifier(?string $modifier): int
@@ -53,19 +56,38 @@ class ModifierService
         return $modifiers;
     }
 
-    public static function mechanicToText(array $mechanic): string
+    public static function mechanicToText(array $mechanic, ?string $choice = null): string
     {
-        $text = match ($mechanic['grant']) {
-            default => ''
-        }.' ';
-        dd($mechanic);
+        $modifier = $mechanic['grant'] != 'mod' ? '' :
+            ($mechanic['modifier'] ?? $mechanic['modifier1'] ?? $mechanic['modifier2']).
+            (in_array($mechanic['on'], ['walk', 'climb', 'fly', 'swim', 'burrow']) ? ' ft.' : '');
 
-        if ($mechanic['choice']) {
-            //
-        } else {
-            $text .= $mechanic['on'];
+        try {
+            return match ($mechanic['grant']) {
+                default => '',
+                'mod' => 'Modifier on: ',
+                'adv' => 'Advantage on: ',
+                'dadv' => 'Disadvantage on: ',
+                'vul' => 'Vulnerability against: ',
+                'res' => 'Resistance against: ',
+                'imm' => 'Immunity against: ',
+                'prof' => 'Proficiency on: ',
+                'sense' => 'Sense: ',
+                'lang' => 'Language: ',
+                // 'ign' => 'Ignore: ',
+                'wm' => 'Weapon Mastery: ',
+            }.
+            FormService::getMechanicName($mechanic['choice'] ? explode('-', $choice) : $mechanic['on']).
+            ($mechanic['grant'] == 'mod' ? ' ('.$modifier.')' : '');
+        } catch (\Exception $e) {
+            Log::alert('Something went wrong while opening '.$mechanic['grant'].'. Error message: '.$e->getMessage());
+            Notification::make('featureOptionNotChosen')
+                ->title('Something went wrong')
+                ->body('It might be a feature with an unchosen mechanic.')
+                ->danger()
+                ->send();
         }
 
-        return $text;
+        return '';
     }
 }

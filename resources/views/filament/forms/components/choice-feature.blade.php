@@ -15,7 +15,7 @@
                 $choices = true;
                 $totalChoices++;
 
-                if (!key_exists($feature->id.$mechanic['grant'].$id, $allMechanics) || $allMechanics[$feature->id.$mechanic['grant'].$id] == null) {
+                if (!key_exists($feature->id.'-'.$mechanic['grant'].$id, $allMechanics) || $allMechanics[$feature->id.'-'.$mechanic['grant'].$id] == null) {
                     $pendingChoices++;
                 }
             }
@@ -44,7 +44,7 @@
             @if (isset($mechanic['choice']) && $mechanic['choice'])
                 <br>
                 @livewire('select-choice', [
-                    'name' => $feature->id.$mechanic['grant'].$id,
+                    'name' => $feature->id.'-'.$mechanic['grant'].$id,
                     'options' => App\Services\FormService::mechanicOptions($mechanic),
                     'type' => match (get_class($parent)) {
                         default => 'unknown',
@@ -54,7 +54,7 @@
                         App\Models\Feat::class => 'feat',
                     },
                     'id' => $parent->id,
-                    'value' => $allMechanics[$feature->id.$mechanic['grant'].$id] ?? null,
+                    'value' => $allMechanics[$feature->id.'-'.$mechanic['grant'].$id] ?? null,
                 ], key($feature->name.'-'.$mechanic['grant'].$id))
             @endif
         @endforeach

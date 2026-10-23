@@ -27,8 +27,8 @@ new class extends Component implements HasForms
                 Select::make('value')
                     ->hiddenLabel()
                     ->live()
-                    ->prefix(match (preg_replace('/\d/', '', $this->name)) {
-                        default => ucfirst(preg_replace('/\d/', '', $this->name)),
+                    ->prefix(match (preg_replace('/[0-9\-]/', '', $this->name)) {
+                        default => ucfirst(preg_replace('/[0-9\-]/', '', $this->name)),
                         'adv' => 'Advantage',
                         'dadv' => 'Disadvantage',
                         'mod' => 'Modifier',

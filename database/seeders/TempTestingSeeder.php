@@ -104,7 +104,7 @@ class TempTestingSeeder extends Seeder
             'classes' => [['hp' => ['level1' => 6, 'level2' => 3], 'id' => '1', 'level' => '2', 'total_hp' => 9, 'dice_used' => ['level1', 'level2'], 'mechanics' => ['skill0' => 4, 'skill1' => 13, 'skill2' => 8], 'used_dice' => 2, 'chosen_spells' => '[2]', 'chosen_cantrips' => '[1]', 'OG Core Traits Primary Class' => null], ['hp' => ['level1' => 8, 'level2' => 3, 'level3' => 6], 'id' => '2', 'level' => '3', 'total_hp' => 17, 'dice_used' => ['level1', 'level2', 'level3'], 'used_dice' => 3, 'chosen_spells' => null, 'chosen_cantrips' => null, 'Tester Core Traits Multiclass' => null]],
             'race_id' => 1,
             'background_id' => 1,
-            'race_options' => ['dadv0' => null],
+            'race_options' => ['2-dadv0' => null],
             'background_options' => ['feat0' => 0, 'skill1' => 6],
             'inventory' => ['coin' => ['cp' => 0, 'ep' => 0, 'gp' => 125, 'pp' => 0, 'sp' => 0], 'items' => [['item' => null, 'amount' => 2]]],
             'extra_info' => ['scores' => [['score' => 10, 'ability' => 'Strength', 'misc_bonus' => null, 'score_override'], ['score' => 11, 'ability' => 'Dexterity', 'misc_bonus' => null, 'score_override'], ['score' => 14, 'ability' => 'Constitution', 'misc_bonus' => null, 'score_override'], ['score' => 13, 'ability' => 'Intelligence', 'misc_bonus' => null, 'score_override'], ['score' => 14, 'ability' => 'Wisdom', 'misc_bonus' => null, 'score_override'], ['score' => 11, 'ability' => 'Charisma', 'misc_bonus' => null, 'score_override']], 'gen_method' => 'buy', 'hp_modifier' => null, 'used_points' => 27, 'overwrite_hp' => null, 'use_fixed_hp' => false],

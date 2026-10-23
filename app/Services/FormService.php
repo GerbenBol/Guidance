@@ -226,7 +226,7 @@ class FormService
                                     'mod' => $state != null && ! empty(array_intersect($state, ['walk', 'climb', 'swim', 'fly', 'burrow'])) ? 3 : 7,
                                     'lang', 'prof', 'sense' => 3,
                                 }),
-                            TextInput::make('modifier')
+                            TextInput::make('modifier1')
                                 ->prefix('Modifier:')
                                 ->suffix(fn (Get $get): ?string => ! empty(array_intersect(array_merge([$get('on'), $get('grant')], $get('options')), ['walk', 'climb', 'swim', 'fly', 'burrow', 'sense'])) ? 'ft.' : null)
                                 ->numeric()
@@ -246,7 +246,7 @@ class FormService
                             ->columns(12),
                         Hidden::make('modifier_validated')
                             ->default(0),
-                        TextInput::make('modifier')
+                        TextInput::make('modifier2')
                             ->hiddenLabel()
                             ->prefix('Modifier:')
                             ->suffixAction(
@@ -363,41 +363,45 @@ class FormService
         $options = [];
 
         foreach ($mechanic['options'] ?? [] as $opt) {
-            if (str_contains($opt, '-')) {
-                $explopt = explode('-', $opt);
-                $options[$opt] = match ($explopt[0]) {
-                    default => $opt,
-                    'skill' => self::pluck(Skill::class, $explopt[1]),
-                    'abi' => ucfirst($explopt[1]),
-                    'save' => ucfirst($explopt[1]).' Save',
-                    'atkabi' => ucfirst($explopt[1]).' Attacks',
-                    'dmgabi' => ucfirst($explopt[1]).' Damage Rolls',
-                    'dmgtype' => self::pluck(DamageType::class, $explopt[1]),
-                    // 'cond' => Condition,
-                    // 'tool' => Tools,
-                    // 'weapontype' => weapontype attacks,
-                    // 'weapon' => Weapons,
-                };
-            } else {
-                $options[$opt] = match ($opt) {
-                    default => $opt,
-                    'walk' => 'Walking Speed',
-                    'climb' => 'Climbing Speed',
-                    'fly' => 'Flying Speed',
-                    'swim' => 'Swimming Speed',
-                    'burrow' => 'Burrowing Speed',
-                    'init' => 'Initiative',
-                    'ac' => 'Armor Class',
-                    'magsleep' => 'Magical Sleep',
-                    'blind' => 'Blindsight',
-                    'true' => 'Truesight',
-                    'dark' => 'Darkvision',
-                    'tremor' => 'Tremorsense',
-                };
-            }
+            $options[$opt] = self::getMechanicName(str_contains($opt, '-') ? explode('-', $opt) : $opt);
         }
 
         return count($options) > 0 ? $options : [0 => 'No options assigned.'];
+    }
+
+    public static function getMechanicName(array|string $onOption): string
+    {
+        if (gettype($onOption) == 'array') {
+            return match ($onOption[0]) {
+                default => implode('-', $onOption[1]),
+                'skill' => self::pluck(Skill::class, $onOption[1]),
+                'abi' => ucfirst($onOption[1]),
+                'save' => ucfirst($onOption[1]).' Save',
+                'atkabi' => ucfirst($onOption[1]).' Attacks',
+                'dmgabi' => ucfirst($onOption[1]).' Damage Rolls',
+                'dmgtype' => self::pluck(DamageType::class, $onOption[1]),
+                // 'cond' => Condition,
+                // 'tool' => Tools,
+                // 'weapontype' => weapontype attacks,
+                // 'weapon' => Weapons,
+            };
+        }
+
+        return match ($onOption) {
+            default => $onOption,
+            'walk' => 'Walking Speed',
+            'climb' => 'Climbing Speed',
+            'fly' => 'Flying Speed',
+            'swim' => 'Swimming Speed',
+            'burrow' => 'Burrowing Speed',
+            'init' => 'Initiative',
+            'ac' => 'Armor Class',
+            'magsleep' => 'Magical Sleep',
+            'blind' => 'Blindsight',
+            'true' => 'Truesight',
+            'dark' => 'Darkvision',
+            'tremor' => 'Tremorsense',
+        };
     }
 
     private static function pluck(string $model, int $id): string

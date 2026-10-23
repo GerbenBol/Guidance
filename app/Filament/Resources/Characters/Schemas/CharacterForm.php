@@ -534,7 +534,7 @@ class CharacterForm
                                                     $schema[] = ChoiceFeature::make($feature->name)
                                                         ->hiddenLabel()
                                                         ->referesTo($feature)
-                                                        ->allMechanics($state['mechanics'] ?? []);
+                                                        ->allMechanics($state['race_options'] ?? []);
                                                 }
                                             } catch (\Exception $e) {
                                                 $set('race_id', null);

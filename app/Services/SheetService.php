@@ -90,18 +90,19 @@ class SheetService
     private function getFeaturesSchema(): array
     {
         $schema = [
-            Section::make('Classes Features')
+            Section::make('Class Features')
                 ->schema(function () {
                     $schema = [];
 
                     foreach ($this->sheet->classes as $class) {
                         $c = PlayerClass::find($class->id);
                         $schema[] = Section::make($c->name.' Features')
-                            ->schema(function () use ($c) {
+                            ->schema(function () use ($c, $class) {
                                 $schema = [];
 
                                 foreach ($c->features ?? [] as $feature) {
-                                    $schema[] = $this->convertFeatureToSchema($feature);
+                                    $options = self::getFeatureOptions(collect($class->mechanics)->toArray(), $feature->id);
+                                    $schema[] = $this->convertFeatureToSchema($feature, $options);
                                 }
 
                                 return $schema;
@@ -120,7 +121,8 @@ class SheetService
                     $schema = [];
 
                     foreach ($this->sheet->race->features as $feature) {
-                        $schema[] = $this->convertFeatureToSchema($feature);
+                        $options = self::getFeatureOptions(collect($this->sheet->race_options)->toArray(), $feature->id);
+                        $schema[] = $this->convertFeatureToSchema($feature, $options);
                     }
 
                     return $schema;
@@ -133,7 +135,24 @@ class SheetService
         return $schema;
     }
 
-    private function convertFeatureToSchema(Feature $feature): TextEntry
+    private function getFeatureOptions(array $options, int $id): array
+    {
+        $ret = [];
+
+        foreach ($options as $key => $option) {
+            if (str_contains($key, '-')) {
+                $opt = explode('-', $key);
+
+                if ($opt[0] == $id) {
+                    $ret[preg_replace('/[^0-9]/', '', $opt[1])] = $option;
+                }
+            }
+        }
+
+        return $ret;
+    }
+
+    private function convertFeatureToSchema(Feature $feature, array $options): TextEntry
     {
         return TextEntry::make($feature->name)
             ->hiddenLabel()
@@ -152,21 +171,40 @@ class SheetService
                             ->schema([
                                 TextEntry::make('mechs')
                                     ->hiddenLabel()
-                                    ->state(function () use ($feature) {
+                                    ->state(function () use ($feature, $options) {
                                         $state = '';
 
-                                        foreach ($feature->mechanics as $mechanic) {
-                                            $state .= ModifierService::mechanicToText($mechanic).'<br>';
-                                            $state .= $feature->name;
+                                        foreach ($feature->mechanics as $id => $mechanic) {
+                                            if ($mechanic['choice']) {
+                                                $state .= ModifierService::mechanicToText($mechanic, $options[$id]);
+                                            } else {
+                                                $state .= ModifierService::mechanicToText($mechanic);
+                                            }
+                                            $state .= '<br>';
                                         }
 
                                         return $state;
                                     })
                                     ->html(),
                             ])
+                            // ->schema(function () use ($feature): array {
+                            //     $schema = [];
+
+                            //     foreach ($feature->mechanics as $id => $mechanic) {
+                            //         $schema[] = Section::make()
+                            //             ->schema([
+                            //                 TextEntry::make('mech'.$id)
+                            //                     ->hiddenLabel()
+                            //                     ->state(ModifierService::mechanicToText($mechanic))
+                            //             ])
+                            //             ->compact(); // could also have a textinput instead of textentry if has choices
+                            //     }
+                            //     return $schema;
+                            // })
                             ->compact()
                             ->secondary()
-                            ->collapsed(),
+                            ->collapsed()
+                            ->visible(fn (): bool => ! empty($feature->mechanics)),
                     ])
             );
     }

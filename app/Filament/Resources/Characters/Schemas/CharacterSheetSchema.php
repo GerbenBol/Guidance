@@ -59,7 +59,7 @@ class CharacterSheetSchema
                                         ->hiddenLabel()
                                         ->tooltip('Manage Character')
                                         ->icon(Heroicon::Cog)
-                                        ->url('edit'),
+                                        ->url($record->id.'/edit'),
                                 )
                                 ->afterContent(
                                     Actions::make([

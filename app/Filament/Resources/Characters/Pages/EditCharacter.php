@@ -41,7 +41,7 @@ class EditCharacter extends EditRecord
             Action::make('openSheet')
                 ->label('Open Sheet')
                 ->icon(Heroicon::PaperAirplane)
-                ->url('sheet')
+                ->url(CharacterSheet::getUrl(['record' => $this->record->id]))
                 ->visible(fn (Character $record): bool => $record->sheet?->isUpToDate() ?? false),
             DeleteAction::make(),
         ];

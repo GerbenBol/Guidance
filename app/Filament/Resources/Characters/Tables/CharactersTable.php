@@ -6,14 +6,10 @@ use App\Filament\Resources\Characters\Pages\CharacterSheet;
 use App\Models\Character;
 use App\Models\PlayerClass;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Log;
 
 class CharactersTable
 {
