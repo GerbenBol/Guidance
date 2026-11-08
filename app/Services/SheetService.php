@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\Feature;
 use App\Models\PlayerClass;
 use App\Models\Sheet;
+use App\Models\Skill;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
@@ -57,6 +58,7 @@ class SheetService
                 Section::make('jnfr'),
             ],
             'features' => $this->getFeaturesSchema(),
+            'skills' => $this->getSkillsSchema(),
         };
     }
 
@@ -89,7 +91,7 @@ class SheetService
 
     private function getFeaturesSchema(): array
     {
-        $schema = [
+        return [
             Section::make('Class Features')
                 ->schema(function () {
                     $schema = [];
@@ -101,7 +103,7 @@ class SheetService
                                 $schema = [];
 
                                 foreach ($c->features ?? [] as $feature) {
-                                    $options = self::getFeatureOptions(collect($class->mechanics)->toArray(), $feature->id);
+                                    $options = $this->getFeatureOptions(collect($class->mechanics)->toArray(), $feature->id);
                                     $schema[] = $this->convertFeatureToSchema($feature, $options);
                                 }
 
@@ -121,7 +123,7 @@ class SheetService
                     $schema = [];
 
                     foreach ($this->sheet->race->features as $feature) {
-                        $options = self::getFeatureOptions(collect($this->sheet->race_options)->toArray(), $feature->id);
+                        $options = $this->getFeatureOptions(collect($this->sheet->race_options)->toArray(), $feature->id);
                         $schema[] = $this->convertFeatureToSchema($feature, $options);
                     }
 
@@ -131,8 +133,31 @@ class SheetService
                 ->compact()
                 ->secondary(),
         ];
+    }
 
-        return $schema;
+    private function getSkillsSchema(): array
+    {
+        return [
+            TextEntry::make('skills')
+                ->hiddenLabel()
+                ->state(function () {
+                    $state = '';
+
+                    foreach (Skill::publicOrOwned()->orderBy('custom')->get() as $skill) {
+                        $state .=
+                            '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;margin-bottom:6px;border-radius:10px;border:1px solid color-mix(in srgb, currentColor 10%, transparent);background:color-mix(in srgb, currentColor 5%, transparent);">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="width:36px;font-size:0.8em;font-weight:600;opacity:0.6;">'.AbilityService::short($skill->ability).'</span>
+                                    <span style="font-weight:600;">'.e($skill->name).'</span>
+                                </div>
+                                <span style="font-weight:600;">0</span>
+                            </div>';
+                    }
+
+                    return $state;
+                })
+                ->html(),
+        ];
     }
 
     private function getFeatureOptions(array $options, int $id): array

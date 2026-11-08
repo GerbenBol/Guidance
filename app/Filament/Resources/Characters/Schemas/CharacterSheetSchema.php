@@ -199,7 +199,7 @@ class CharacterSheetSchema
                             $schema = [];
                             $layout = json_decode($get('layout'));
 
-                            if ($layout) {
+                            if ($layout && $layout->containers) {
                                 foreach ($layout->containers as $id => $container) {
                                     $tabs = 'tabs'.$id;
                                     $$tabs = [];
@@ -210,6 +210,7 @@ class CharacterSheetSchema
                                                 'prof' => 'Proficiencies',
                                                 'actions' => 'Actions',
                                                 'features' => 'Features',
+                                                'skills' => 'Skills',
                                                 default => ''
                                             })
                                             ->schema($serve->getTabSchema($tab));
@@ -219,53 +220,20 @@ class CharacterSheetSchema
                                         ->tabs($$tabs)
                                         ->contained(false);
                                 }
-                            }
-
-                            $schema[] = Action::make('reorder')
-                                ->hiddenLabel()
-                                ->icon(Heroicon::RectangleGroup) // Map || EllipsisVertical
-                                ->extraAttributes(['style' => 'position:absolute; top:10px; right:10px; z-index:10'])
-                                ->schema([
-                                    TextInput::make('tabs_amount')
-                                        ->label('Amount of containers')
-                                        ->inlineLabel()
-                                        ->numeric()
-                                        ->live()
-                                        ->default(1)
-                                        ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                            $amount = $state ?? 1;
-                                            $current = $get('containers') ?? [];
-
-                                            while (count($current) < $amount) {
-                                                $current[] = ['tabs' => []];
-                                            }
-
-                                            while (count($current) > $amount) {
-                                                array_pop($current);
-                                            }
-                                            $set('containers', $current);
-                                        }),
-                                    Repeater::make('containers')
-                                        ->hiddenLabel()
-                                        ->schema([
-                                            CheckboxList::make('tabs')
-                                                ->hiddenLabel()
-                                                ->options([
-                                                    'prof' => 'Proficiencies',
-                                                    'actions' => 'Actions',
-                                                    'features' => 'Features',
-                                                ])
-                                                ->live()
-                                                ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
-                                        ])
-                                        ->itemLabel(fn (int $index) => 'Container '.($index + 1))
-                                        ->addable(false)
-                                        ->deletable(false)
-                                        ->reorderable(false)
-                                        ->grid(fn (Get $get): int => min($get('tabs_amount') ?? 1, 5)),
+                                $schema[] = self::getReorderAction()
+                                    ->extraAttributes(['style' => 'position:absolute; top:10px; right:10px; z-index:10;']);
+                            } else {
+                                $schema[] = TextEntry::make('emptyLayout')
+                                    ->hiddenLabel()
+                                    ->state('No layout found. Add tabs by pressing the button below.')
+                                    ->size(TextSize::Large)
+                                    ->alignCenter();
+                                $schema[] = Actions::make([
+                                    self::getReorderAction()
+                                        ->size('lg'),
                                 ])
-                                ->fillForm(fn (Get $get): array => json_decode($get('layout'), true) ?? [])
-                                ->action(fn (array $data, Set $set) => $set('layout', json_encode($data)));
+                                    ->alignCenter();
+                            }
 
                             return $schema;
                         })
@@ -289,5 +257,54 @@ class CharacterSheetSchema
     {
         return TextEntry::make('empty')
             ->hiddenLabel();
+    }
+
+    private static function getReorderAction(): Action
+    {
+        return Action::make('reorder')
+            ->hiddenLabel()
+            ->icon(Heroicon::RectangleGroup)
+            ->schema([
+                TextInput::make('tabs_amount')
+                    ->label('Amount of containers')
+                    ->inlineLabel()
+                    ->numeric()
+                    ->live()
+                    ->default(1)
+                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                        $amount = $state ?? 1;
+                        $current = $get('containers') ?? [];
+
+                        while (count($current) < $amount) {
+                            $current[] = ['tabs' => []];
+                        }
+
+                        while (count($current) > $amount) {
+                            array_pop($current);
+                        }
+                        $set('containers', $current);
+                    }),
+                Repeater::make('containers')
+                    ->hiddenLabel()
+                    ->schema([
+                        CheckboxList::make('tabs')
+                            ->hiddenLabel()
+                            ->options([
+                                'prof' => 'Proficiencies',
+                                'actions' => 'Actions',
+                                'features' => 'Features',
+                                'skills' => 'Skills',
+                            ])
+                            ->live()
+                            ->disableOptionsWhenSelectedInSiblingRepeaterItems(),
+                    ])
+                    ->itemLabel(fn (int $index) => 'Container '.($index + 1))
+                    ->addable(false)
+                    ->deletable(false)
+                    ->reorderable(false)
+                    ->grid(fn (Get $get): int => min($get('tabs_amount') ?? 1, 5)),
+            ])
+            ->fillForm(fn (Get $get): array => json_decode($get('layout'), true) ?? [])
+            ->action(fn (array $data, Set $set) => $set('layout', json_encode($data)));
     }
 }

@@ -44,7 +44,7 @@ class CharacterSheet extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $data['layout'] = $data['layout'] ?? '{"tabs_amount":2,"containers":[{"tabs":["prof"]},{"tabs":["features","actions"]}]}';
+        $data['layout'] = $data['layout'] ?? '{"tabs_amount":2,"containers":[{"tabs":["skills","prof"]},{"tabs":["features"]}]}';
 
         return parent::mutateFormDataBeforeFill($data);
     }
