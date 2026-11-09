@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Characters\Pages;
 
 use App\Filament\Resources\Characters\CharacterResource;
-use App\Models\Background;
 use App\Models\Character;
 use App\Models\Sheet;
 use Filament\Actions\Action;
@@ -67,12 +66,6 @@ class EditCharacter extends EditRecord
                 $data['extra_info'][$key] = $data[$key];
             }
         }
-
-        // foreach (Background::find($data['background_id'])?->equipment[$data['bg_equipment']]['items'] ?? [] as $id => $item) {
-        //     if ($item['type'] == 'item-choice') {
-        //         $data['background_options']['equip-choice']['bg-'.$data['bg_equipment'].'-item-'.$id] = $data['bg-'.$data['bg_equipment'].'-item-'.$id];
-        //     }
-        // }
 
         $data['extra_info']['gen_method'] = $data['gen_method'];
         $data['extra_info']['used_points'] = $data['used_points'];

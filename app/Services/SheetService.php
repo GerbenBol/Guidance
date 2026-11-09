@@ -34,7 +34,7 @@ class SheetService
             $hp = collect($record->classes)->pluck('total_hp')->sum();
         }
 
-        return $hp + (AbilityService::scoreToModifier($record->getAbilityScore('con')) * $record->ch_lvl) + ($record->einfo->hp_mod ?? 0);
+        return $hp + (ModifierService::scoreToModifier($record->getAbilityScore('con')) * $record->ch_lvl) + ($record->einfo->hp_mod ?? 0);
     }
 
     public static function getInitiative(Sheet $record): int
@@ -147,7 +147,7 @@ class SheetService
                         $state .=
                             '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;margin-bottom:6px;border-radius:10px;border:1px solid color-mix(in srgb, currentColor 10%, transparent);background:color-mix(in srgb, currentColor 5%, transparent);">
                                 <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="width:36px;font-size:0.8em;font-weight:600;opacity:0.6;">'.AbilityService::short($skill->ability).'</span>
+                                    <span style="width:36px;font-size:0.8em;font-weight:600;opacity:0.6;">'.$skill->ability->shorthand.'</span>
                                     <span style="font-weight:600;">'.e($skill->name).'</span>
                                 </div>
                                 <span style="font-weight:600;">0</span>

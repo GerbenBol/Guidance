@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Characters\Schemas;
 
 use App\Filament\Forms\Components\ChoiceFeature;
 use App\Filament\Forms\Components\CoreTrait;
+use App\Models\Ability;
 use App\Models\Background;
 use App\Models\Character;
 use App\Models\Feat;
@@ -11,8 +12,8 @@ use App\Models\PlayerClass;
 use App\Models\Race;
 use App\Models\Skill;
 use App\Models\Spell;
-use App\Services\AbilityService;
 use App\Services\FormService;
+use App\Services\ModifierService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Radio;
@@ -275,7 +276,7 @@ class CharacterForm
                                                             $core = [
                                                                 'name' => $class->name.' Core Traits Primary Class',
                                                                 'description' => 'As a primary class the '.$class->name.' gains the following:<br>
-                                                                    - <em>Saving Throw Proficiencies: '.implode(', ', array_map(fn ($item) => ucfirst($item), $class->class_info->save_prof)).'</em>',
+                                                                    - <em>Saving Throw Proficiencies: '.implode(', ', array_map(fn ($item) => Ability::find($item)->name, $class->class_info->save_prof)).'</em>',
                                                                 'mechanics' => [],
                                                             ];
                                                         } else {
@@ -788,7 +789,7 @@ class CharacterForm
                                                     Hidden::make('ability'),
                                                     TextEntry::make('ability_score')
                                                         ->hiddenLabel()
-                                                        ->state(fn (Get $get) => ($get('ability') ?? '').' ('.(AbilityService::scoreToModifierString(($get('gen_method') == 'man' ? $get('score') : $get('select_score')) ?? 10)).')')
+                                                        ->state(fn (Get $get) => Ability::find($get('ability'))->name.' ('.(ModifierService::scoreToModifierString(($get('gen_method') == 'man' ? $get('score') : $get('select_score')) ?? 10)).')')
                                                         ->alignCenter()
                                                         ->size(TextSize::Large),
                                                     TextInput::make('score')
@@ -841,7 +842,7 @@ class CharacterForm
                                             ->reorderable(false)
                                             ->deletable(false)
                                             ->addable(false)
-                                            ->default([['ability' => 'Strength'], ['ability' => 'Dexterity'], ['ability' => 'Constitution'], ['ability' => 'Intelligence'], ['ability' => 'Wisdom'], ['ability' => 'Charisma']]),
+                                            ->default([['ability' => 1], ['ability' => 2], ['ability' => 3], ['ability' => 4], ['ability' => 5], ['ability' => 6]]),
                                     ])
                                     ->secondary()
                                     ->hidden(fn (Get $get): bool => ! $get('gen_method')),

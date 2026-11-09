@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Classes\Schemas;
 
-use App\Enums\Ability;
 use App\Enums\Dice;
 use App\Filament\Forms\Components\SpellSlotItem;
+use App\Models\Ability;
 use App\Models\PlayerClass;
 use App\Models\Skill;
 use App\Services\FormService;
@@ -76,7 +76,7 @@ class ClassForm
                                             Select::make('primary_ability')
                                                 ->prefix('Primary:')
                                                 ->options(function (Get $get): array {
-                                                    $abilities = Ability::toArray();
+                                                    $abilities = Ability::all()->pluck('name', 'id')->toArray();
 
                                                     if ($get('secondary_ability') && $get('secondary_ability') != 'none') {
                                                         unset($abilities[$get('secondary_ability')]);
@@ -89,7 +89,7 @@ class ClassForm
                                             Select::make('secondary_ability')
                                                 ->prefix('Secondary:')
                                                 ->options(function (Get $get): array {
-                                                    $abilities = ['none' => 'No Secondary'] + Ability::toArray();
+                                                    $abilities = ['none' => 'No Secondary'] + Ability::all()->pluck('name', 'id')->toArray();
 
                                                     if ($get('primary_ability')) {
                                                         unset($abilities[$get('primary_ability')]);
@@ -109,7 +109,7 @@ class ClassForm
                                                     ->schema([
                                                         Select::make('save_prof')
                                                             ->label('Saving Throw Proficiencies')
-                                                            ->options(Ability::toArray())
+                                                            ->options(Ability::allSaves())
                                                             ->multiple()
                                                             ->maxItems(2),
                                                         self::getProficiencyRepeater('prof'),
@@ -186,7 +186,7 @@ class ClassForm
                                                 Select::make('spell_ability')
                                                     ->prefix('Spellcasting Ability')
                                                     ->hiddenLabel()
-                                                    ->options(Ability::toArray())
+                                                    ->options(Ability::all())
                                                     ->native(false)
                                                     ->columnSpan(9),
                                                 Radio::make('has_own_spelllist')

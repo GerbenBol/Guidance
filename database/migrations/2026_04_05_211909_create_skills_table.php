@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\Ability;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +14,7 @@ return new class extends Migration
         Schema::create('skills', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->enum('ability', Ability::cases());
+            $table->foreignId('ability_id')->nullable();
             $table->boolean('custom')->default(false);
             $table->bigInteger('user_id')->unsigned()->nullable();
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();

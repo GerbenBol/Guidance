@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\Characters\Schemas;
 
+use App\Models\Ability;
 use App\Models\Character;
 use App\Models\Sheet;
-use App\Services\AbilityService;
 use App\Services\SheetService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
@@ -131,7 +131,7 @@ class CharacterSheetSchema
                                                 ->hiddenLabel()
                                                 ->alignCenter()
                                                 ->size(TextSize::Small)
-                                                ->formatStateUsing(fn ($state): string => AbilityService::short($state))
+                                                ->formatStateUsing(fn ($state): string => Ability::find($state)->shorthand)
                                                 ->extraAttributes(['style' => 'margin-top:-5px']),
                                             TextEntry::make('mod')
                                                 ->hiddenLabel()

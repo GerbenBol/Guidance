@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Feats\Schemas;
 
-use App\Enums\Ability;
+use App\Models\Ability;
 use App\Models\Background;
 use App\Models\PlayerClass;
 use App\Models\Race;
@@ -70,7 +70,7 @@ class FeatForm
                                                     'race' => Race::getAllRecords('publicOrOwned'),
                                                     'class' => PlayerClass::getAllRecords('publicOrOwned'),
                                                     'backgr' => Background::getAllRecords('publicOrOwned'),
-                                                    'ability' => Ability::toArray(),
+                                                    'ability' => Ability::all()->pluck('name', 'id')->toArray(),
                                                     'prof' => array_merge(
                                                         Skill::getAllRecords('public'),
                                                         // tools, languages, weapons

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\Ability;
+use App\Models\Ability;
 use App\Models\DamageType;
 use App\Models\School;
 use App\Models\Skill;
@@ -411,11 +411,12 @@ class FormService
 
     private static function getModifierOptions(?string $input): array
     {
-        $abilities = self::addPrefixToIDs('abi', Ability::toArray());
-        $saves = self::addPrefixToIDs('save', Ability::saveArray());
+        $a = Ability::all()->pluck('name', 'id')->toArray();
+        $abilities = self::addPrefixToIDs('abi', $a);
+        $saves = self::addPrefixToIDs('save', Ability::allSaves()->toArray());
         $skills = self::addPrefixToIDs('skill', Skill::getAllRecords('publicOrOwned'));
-        $atkAbility = self::addPrefixToIDs('atkabi', Ability::toArray());
-        $dmgAbility = self::addPrefixToIDs('dmgabi', Ability::toArray());
+        $atkAbility = self::addPrefixToIDs('atkabi', $a);
+        $dmgAbility = self::addPrefixToIDs('dmgabi', $a);
         $damageTypes = self::addPrefixToIDs('dmgtype', DamageType::all()->pluck('name', 'id')->toArray());
         $conditions = self::addPrefixToIDs('cond', [/* conditions */]);
         $tools = self::addPrefixToIDs('tool', [/* tools */]);

@@ -14,7 +14,6 @@ class Skill extends Model
 
     protected $fillable = [
         'name',
-        'ability',
         'custom',
         'user_id',
     ];
@@ -23,8 +22,13 @@ class Skill extends Model
         'custom' => 'boolean',
     ];
 
+    public function ability(): BelongsTo
+    {
+        return $this->belongsTo(Ability::class);
+    }
+
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 }

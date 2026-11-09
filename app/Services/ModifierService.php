@@ -56,6 +56,18 @@ class ModifierService
         return $modifiers;
     }
 
+    public static function scoreToModifier(int $score): int
+    {
+        return ($score - 10) / 2;
+    }
+
+    public static function scoreToModifierString(int $score): string|int
+    {
+        $mod = self::scoreToModifier($score);
+
+        return $mod >= 0 ? '+'.$mod : $mod;
+    }
+
     public static function mechanicToText(array $mechanic, ?string $choice = null): string
     {
         $modifier = $mechanic['grant'] != 'mod' ? '' :

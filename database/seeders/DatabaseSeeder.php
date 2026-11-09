@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
 
         new SchoolSeeder()->run();
         new DamageTypeSeeder()->run();
+        new AbilitySeeder()->run();
         new SkillSeeder()->run();
 
         // Testing only

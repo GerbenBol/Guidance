@@ -49,7 +49,7 @@ class EditClass extends EditRecord
             }
         }
 
-        $data['equipment'] = json_decode(json_encode($data['equipment']), true);
+        $data['equipment'] = json_decode(json_encode($data['equipment'] ?? []), true);
 
         return $data;
     }
